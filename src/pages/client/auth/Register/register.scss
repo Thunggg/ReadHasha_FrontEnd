@@ -1,0 +1,91 @@
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, #ffffff, #f8f9fa);
+    text-align: center;
+
+    h2 {
+        color: #333;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 25px;
+    }
+
+    .form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .ant-form-item {
+        text-align: left;
+    }
+
+    .ant-input, .ant-input-password {
+        padding: 14px;
+        font-size: 16px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        transition: all 0.3s ease-in-out;
+
+        &:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.3);
+        }
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        gap: 15px; // Khoảng cách giữa hai nút
+    }
+
+    .ant-btn-primary,
+    .ant-btn-default {
+        width: 120px; // Giảm kích thước nút
+        padding: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .ant-btn-primary {
+        background: #007bff;
+        border: none;
+
+        &:hover {
+            background: #0056b3;
+        }
+    }
+
+    .ant-btn-default {
+        background: #6c757d;
+        color: white;
+        border: none;
+
+        &:hover {
+            background: #545b62;
+        }
+    }
+
+    .login-link {
+        color: #007bff;
+        font-weight: bold;
+        font-size: 16px;
+        transition: color 0.3s;
+
+        &:hover {
+            color: #0056b3;
+        }
+    }
+
+    hr {
+        margin: 25px 0;
+        border: none;
+        border-top: 1px solid #ddd;
+    }
+}

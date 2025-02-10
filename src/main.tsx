@@ -1,10 +1,26 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import './index.css'
-
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Layout from './layout';
-import './styles/global.scss'
+import Layout from '@/layout'
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
+// import BookPage from 'pages/client/book';
+// import AboutPage from 'pages/client/about';
+// import LoginPage from 'pages/client/auth/login';
+// import RegisterPage from 'pages/client/auth/register';
+import 'styles/global.scss'
+import RegisterPage from './pages/client/auth/Register/register';
+// import { App } from 'antd';
+// import { AppProvider } from 'components/context/app.context';
+// import ProtectedRoute from '@/components/auth';
+// import LayoutAdmin from './components/layout/layout.admin';
+// import DashBoardPage from './pages/admin/dashboard';
+// import ManageBookPage from './pages/admin/manage.book';
+// import ManageOrderPage from './pages/admin/manage.order';
+// import ManageUserPage from './pages/admin/manage.user';
+// import { ConfigProvider } from "antd";
+// import enUS from 'antd/locale/en_US';
 
 const router = createBrowserRouter([
   {
@@ -73,10 +89,10 @@ const router = createBrowserRouter([
   //   path: "login",
   //   element: <LoginPage />,
   // },
-  // {
-  //   path: "register",
-  //   element: <RegisterPage />,
-  // },
+  {
+    path: "register",
+    element: <RegisterPage />,
+  },
 
 ]);
 
