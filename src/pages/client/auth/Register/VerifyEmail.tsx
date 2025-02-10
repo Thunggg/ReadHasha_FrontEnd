@@ -1,6 +1,6 @@
 import { Button, Form, Input, message } from "antd";
 import { useState } from "react";
-import { verifyEmail } from "@/services/api";
+import { resendOTP, verifyEmail } from "@/services/api";
 import { useNavigate } from 'react-router-dom';
 import "./verifyEmail.scss";
 
@@ -10,7 +10,9 @@ type VerifyEmailForm = {
 
 const VerifyEmail = () => {
     const [loading, setLoading] = useState(false); // ✅ Đặt trong function component
+    const [resendLoading, setResendLoading] = useState(false);
     const navigate = useNavigate();
+
     const onFinish = async (values: VerifyEmailForm) => {
         setLoading(true);
 
@@ -28,6 +30,22 @@ const VerifyEmail = () => {
         setLoading(false);
         localStorage.clear();
         navigate("/login");
+    };
+
+    const onResendOTP = async () => {
+        setResendLoading(true);
+        try {
+
+            const res = await resendOTP();
+            if (res && res.statusCode === 200) {
+                message.success("Mã OTP đã được gửi lại đến email của bạn!");
+            } else {
+                message.error(res.data.message || "Gửi lại mã OTP thất bại!");
+            }
+        } catch (error: any) {
+            message.error(error.response?.data?.message || "Lỗi hệ thống!");
+        }
+        setResendLoading(false);
     };
 
     return (
@@ -48,6 +66,11 @@ const VerifyEmail = () => {
                         Xác nhận
                     </Button>
                 </Form.Item>
+
+                {/* Nút gửi lại mã OTP */}
+                <Button type="link" onClick={onResendOTP} loading={resendLoading}>
+                    Gửi lại mã OTP
+                </Button>
             </Form>
         </div>
     );

@@ -8,11 +8,8 @@ export const registerAPI = async (registerData: any) => {
 
     const response = await axios.post<IBackendRes<{ accessToken: string, refreshToken: string }>>(urlBackend, formData);
 
-    console.log("Response từ Backend:", response);
-
-    // Kiểm tra dữ liệu trả về từ backend
     if (response && response.data) {
-        const accessToken = response.access_token; // Lấy token từ data
+        const accessToken = response.access_token;
         console.log(accessToken)
         if (accessToken) {
             localStorage.setItem("access_token", accessToken);
@@ -29,13 +26,27 @@ export const registerAPI = async (registerData: any) => {
 export const verifyEmail = async (otp: string) => {
     const urlBackend = "/api/v1/accounts/email/verify";
 
-    const token = localStorage.getItem("access_token"); // Lấy token từ localStorage
-
+    const token = localStorage.getItem("access_token");
     if (!token) {
         throw new Error("Không tìm thấy token! Vui lòng đăng nhập lại.");
     }
 
     return axios.post(urlBackend, { otp }, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
+
+export const resendOTP = async () => {
+    const urlBackend = "/api/v1/accounts/email/resend-otp"; // URL backend để gửi lại OTP
+    const token = localStorage.getItem("access_token"); // Lấy token từ localStorage
+
+    if (!token) {
+        throw new Error("Không tìm thấy token! Vui lòng thử đăng ký lại!");
+    }
+
+    return axios.post(urlBackend, {}, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
