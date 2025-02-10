@@ -13,6 +13,7 @@ import 'styles/global.scss'
 import RegisterPage from 'pages/client/auth/Register/register';
 import VerifyEmail from 'pages/client/auth/Register/VerifyEmail';
 import RegisterLayout from './Layout/RegisterLayout';
+import LoginPage from './pages/client/auth/Login/login';
 // import { App } from 'antd';
 // import { AppProvider } from 'components/context/app.context';
 // import ProtectedRoute from '@/components/auth';
@@ -87,10 +88,10 @@ const router = createBrowserRouter([
   //     }
   //   ]
   // },
-  // {
-  //   path: "login",
-  //   element: <LoginPage />,
-  // },
+  {
+    path: "login",
+    element: <LoginPage />,
+  },
   {
     path: "/register",
     element: <RegisterLayout />,
