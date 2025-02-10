@@ -6,6 +6,8 @@ declare global {
         message: string;
         statusCode: number | string;
         data?: T;
+        access_token?: string;
+        refresh_token?: string;
     }
 
     interface IModelPaginate<T> {

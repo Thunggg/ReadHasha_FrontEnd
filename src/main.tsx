@@ -10,7 +10,9 @@ import {
 // import LoginPage from 'pages/client/auth/login';
 // import RegisterPage from 'pages/client/auth/register';
 import 'styles/global.scss'
-import RegisterPage from './pages/client/auth/Register/register';
+import RegisterPage from 'pages/client/auth/Register/register';
+import VerifyEmail from 'pages/client/auth/Register/VerifyEmail';
+import RegisterLayout from './Layout/RegisterLayout';
 // import { App } from 'antd';
 // import { AppProvider } from 'components/context/app.context';
 // import ProtectedRoute from '@/components/auth';
@@ -90,8 +92,18 @@ const router = createBrowserRouter([
   //   element: <LoginPage />,
   // },
   {
-    path: "register",
-    element: <RegisterPage />,
+    path: "/register",
+    element: <RegisterLayout />,
+    children: [
+      {
+        index: true,
+        element: <RegisterPage />
+      },
+      {
+        path: "verifyEmail",
+        element: <VerifyEmail />
+      }
+    ]
   },
 
 ]);

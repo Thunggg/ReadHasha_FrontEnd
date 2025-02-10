@@ -45,8 +45,7 @@ const RegisterPage: React.FC = () => {
             try {
                 const res = await registerAPI(registerData);
                 if (res.data && res.statusCode === 201) {
-                    message.success("Đăng ký thành công!");
-                    navigate("/login");
+                    navigate("/register/verifyEmail");
                 } else {
                     message.error(res.error);
                 }
