@@ -35,4 +35,18 @@ declare global {
         accStatus: number,
         code: string
     }
+
+    interface ILogin {
+        access_token: string;
+        refresh_token: string;
+        user: {
+            email: string;
+            phone: string;
+            fullName: string;
+            role: string;
+            avatar: string;
+            id: string;
+        }
+    }
+
 }

@@ -52,3 +52,12 @@ export const resendOTP = async () => {
         },
     });
 };
+
+export const LoginAPI = async (username: string, password: string) => {
+    const urlBackend = "/api/v1/accounts/auth/login";
+    return axios.post<IBackendRes<ILogin>>(urlBackend, { username, password }, {
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+}
