@@ -1,9 +1,9 @@
 import type { FormProps } from 'antd';
-import { Button, Form, Input, message, notification } from 'antd';
+import { Button, Form, Input, message, Modal, notification } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import './login.scss';
 import { useState } from 'react';
-import { LoginAPI } from '@/services/api';
+import { LoginAPI, resendOTP } from '@/services/api';
 
 type LoginFormType = {
     username: string;
@@ -14,24 +14,34 @@ type LoginFormType = {
 
 const LoginPage = () => {
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [loadingVerify, setLoadingVerify] = useState<boolean>(false);
+    const [showVerifyModal, setShowVerifyModal] = useState<boolean>(false);
+    const [token, setToken] = useState<string | null>(null);
 
     const onFinish: FormProps<LoginFormType>["onFinish"] = async (values) => {
         setLoading(true);
         try {
             const res = await LoginAPI(values.username, values.password);
 
-            if (res && res.statusCode == 401) {
+            console.log(">>>>>>>>>>>> RES:", res);
+            if (res && res.statusCode == 1051 || res && res.statusCode == 1052) {
                 notification.error({
                     message: "Đăng nhập thất bại",
                     description: res.message,
                     duration: 5
                 });
-                return;
             }
-
-            console.log(res);
-            if (res) {
+            else if (res && res.statusCode == 403) {
+                notification.error({
+                    message: "Đăng nhập thất bại",
+                    description: res.message,
+                    duration: 5
+                });
+                setShowVerifyModal(true);
+                setToken(res.access_token || null);
+            }
+            else {
                 if (res.statusCode == 200) {
                     localStorage.setItem("access_token", res.access_token ?? "");
                     message.success("Đăng nhập tài khoản thành công!");
@@ -91,6 +101,31 @@ const LoginPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modal Xác Nhận Email */}
+            <Modal
+                title="📧 Xác Thực Email"
+                open={showVerifyModal}
+                onCancel={() => setShowVerifyModal(false)}
+                footer={[
+                    <Button key="cancel" onClick={() => setShowVerifyModal(false)}>
+                        Hủy
+                    </Button>,
+                    <Button key="verify" type="primary" onClick={async () => {
+                        setLoadingVerify(true);
+                        localStorage.setItem("access_token", token ?? "");
+                        await resendOTP();
+                        setLoadingVerify(false);
+                        navigate("/register/verifyEmail");
+                    }}
+                        loading={loadingVerify}
+                    >
+                        Xác Thực Ngay
+                    </Button>,
+                ]}
+            >
+                <p>Bạn cần xác thực email trước khi tiếp tục.</p>
+            </Modal>
         </>
     )
 };

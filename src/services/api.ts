@@ -54,10 +54,15 @@ export const resendOTP = async () => {
 };
 
 export const LoginAPI = async (username: string, password: string) => {
-    const urlBackend = "/api/v1/accounts/auth/login";
-    return axios.post<IBackendRes<ILogin>>(urlBackend, { username, password }, {
+    const urlBackend = "/api/auth/login";
+
+    // Tạo FormData để gửi dữ liệu theo yêu cầu của backend
+    const formData = new FormData();
+    formData.append("login", JSON.stringify({ username, password }));
+
+    return axios.post<IBackendRes<ILogin>>(urlBackend, formData, {
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "multipart/form-data"
         }
-    })
-}
+    });
+};

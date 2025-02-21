@@ -37,16 +37,25 @@ declare global {
     }
 
     interface ILogin {
-        access_token: string;
-        refresh_token: string;
-        user: {
-            email: string;
-            phone: string;
-            fullName: string;
-            role: string;
-            avatar: string;
-            id: string;
+        account: {
+            authenticate: boolean;
+            user: {
+                username: string,
+                firstName: string,
+                lastName: string,
+                password: string,
+                dob: DATE,
+                email: string,
+                phone: string,
+                role: number,
+                address: string,
+                sex: number,
+                accStatus: number,
+                code: string
+            }
         }
+        accessToken: string;
+        refreshToken: string;
     }
 
 }
