@@ -47,7 +47,7 @@ const LoginPage = () => {
                 if (res.statusCode == 200) {
                     setIsAuthenticated(true);
                     setUser(res?.data?.account!);
-                    localStorage.setItem("access_token", res.access_token ?? "");
+                    localStorage.setItem("access_token", res.data?.accessToken ?? "");
                     message.success("Đăng nhập tài khoản thành công!");
                     navigate("/");
                 }

@@ -66,3 +66,8 @@ export const LoginAPI = async (username: string, password: string) => {
         }
     });
 };
+
+export const fetchAccountAPI = () => {
+    const urlBackend = "/api/v1/accounts/fetch-account";
+    return axios.get<IBackendRes<IUser>>(urlBackend);
+}
