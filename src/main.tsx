@@ -16,6 +16,7 @@ import RegisterLayout from './Layout/RegisterLayout';
 import LoginPage from './pages/client/auth/Login/login';
 import { App } from 'antd';
 import { AppProvider } from 'components/context/app.context';
+import ProtectedRoute from '@/components/auth';
 // import { App } from 'antd';
 // import { AppProvider } from 'components/context/app.context';
 // import ProtectedRoute from '@/components/auth';
@@ -31,63 +32,71 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Layout />,
-    // children: [
-    //   {
-    //     index: true,
-    //     path: "book",
-    //     element: <BookPage />,
-    //   },
-    //   {
-    //     path: "about",
-    //     element: <AboutPage />,
-    //   },
-    //   {
-    //     path: "checkout",
-    //     element: (
-    //       <ProtectedRoute>
-    //         <div>checkout page</div>
-    //       </ProtectedRoute>
-    //     ),
-    //   }
+    children: [
+      {
+        index: true,
+        path: "book",
+        element: <div>Book page</div>,
+      },
+      {
+        path: "about",
+        element: <div>about page</div>,
+      },
+      {
+        path: "checkout",
+        element: (
+          <ProtectedRoute>
+            <div>checkout page</div>
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "admin",
+        element: (
+          <ProtectedRoute>
+            <div>Admin page</div>
+          </ProtectedRoute>
+        ),
+      }
 
-    // ]
+    ]
   },
   // {
   //   path: "/admin",
-  //   element: <LayoutAdmin />,
+  //   element: <Layout />,
   //   children: [
   //     {
   //       index: true,
   //       element: (
   //         <ProtectedRoute>
-  //           <DashBoardPage />
+  //           <div>admin page</div>
   //         </ProtectedRoute>
   //       ),
   //     },
-  //     {
-  //       path: "book",
-  //       element: (
-  //         <ProtectedRoute>
-  //           <ManageBookPage />
-  //         </ProtectedRoute>
-  //       ),
-  //     },
-  //     {
-  //       path: "order",
-  //       element: (
-  //         <ProtectedRoute>
-  //           <ManageOrderPage />
-  //         </ProtectedRoute>
-  //       ),
-  //     },
-  //     {
-  //       path: "user",
-  //       element: (
-  //         <ProtectedRoute>
-  //           <ManageUserPage />
-  //         </ProtectedRoute>
-  //       ),
-  //     }
+  // {
+  //   path: "book",
+  //   element: (
+  //     <ProtectedRoute>
+  //       <ManageBookPage />
+  //     </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "order",
+  //   element: (
+  //     <ProtectedRoute>
+  //       <ManageOrderPage />
+  //     </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "user",
+  //   element: (
+  //     <ProtectedRoute>
+  //       <ManageUserPage />
+  //     </ProtectedRoute>
+  //   ),
+  // }
   //   ]
   // },
   {

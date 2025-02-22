@@ -6,19 +6,26 @@ import { useCurrentApp } from "./components/context/app.context";
 import { PacmanLoader } from "react-spinners";
 
 const Layout = () => {
-    const { setUser, isAppLoading, setIsAppLoading } = useCurrentApp();
+    const { setUser, isAppLoading, setIsAppLoading, setIsAuthenticated } = useCurrentApp();
 
     useEffect(() => {
         const fetchAccount = async () => {
+            setIsAppLoading(true);
+
             const res = await fetchAccountAPI();
             if (res.data) {
                 setUser(res.data);
-                setIsAppLoading(true);
+                setIsAuthenticated(true);
             }
-            setIsAppLoading(false);
-        }
+            // Dừng lại 2 giây trước khi tắt loading
+            setTimeout(() => {
+                setIsAppLoading(false);
+            }, 2000);
+        };
+
         fetchAccount();
-    }, [])
+    }, []);
+
 
     return (
         <>
