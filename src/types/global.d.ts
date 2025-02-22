@@ -38,24 +38,37 @@ declare global {
 
     interface ILogin {
         account: {
-            authenticate: boolean;
-            user: {
-                username: string,
-                firstName: string,
-                lastName: string,
-                password: string,
-                dob: DATE,
-                email: string,
-                phone: string,
-                role: number,
-                address: string,
-                sex: number,
-                accStatus: number,
-                code: string
-            }
+            username: string,
+            firstName: string,
+            lastName: string,
+            password: string,
+            dob: DATE,
+            email: string,
+            phone: string,
+            role: number,
+            address: string,
+            sex: number,
+            accStatus: number,
+            code: string
         }
+        authenticate: boolean;
         accessToken: string;
         refreshToken: string;
+    }
+
+    interface IUser {
+        username: string,
+        firstName: string,
+        lastName: string,
+        password: string,
+        dob: DATE,
+        email: string,
+        phone: string,
+        role: number,
+        address: string,
+        sex: number,
+        accStatus: number,
+        code: string
     }
 
 }

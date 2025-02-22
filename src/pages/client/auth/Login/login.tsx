@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './login.scss';
 import { useState } from 'react';
 import { LoginAPI, resendOTP } from '@/services/api';
+import { useCurrentApp } from '@/components/context/app.context';
 
 type LoginFormType = {
     username: string;
@@ -18,6 +19,7 @@ const LoginPage = () => {
     const [loadingVerify, setLoadingVerify] = useState<boolean>(false);
     const [showVerifyModal, setShowVerifyModal] = useState<boolean>(false);
     const [token, setToken] = useState<string | null>(null);
+    const { setIsAuthenticated, setUser } = useCurrentApp();
 
     const onFinish: FormProps<LoginFormType>["onFinish"] = async (values) => {
         setLoading(true);
@@ -43,6 +45,8 @@ const LoginPage = () => {
             }
             else {
                 if (res.statusCode == 200) {
+                    setIsAuthenticated(true);
+                    setUser(res?.data?.account!);
                     localStorage.setItem("access_token", res.access_token ?? "");
                     message.success("Đăng nhập tài khoản thành công!");
                     navigate("/");

@@ -14,6 +14,8 @@ import RegisterPage from 'pages/client/auth/Register/register';
 import VerifyEmail from 'pages/client/auth/Register/VerifyEmail';
 import RegisterLayout from './Layout/RegisterLayout';
 import LoginPage from './pages/client/auth/Login/login';
+import { App } from 'antd';
+import { AppProvider } from 'components/context/app.context';
 // import { App } from 'antd';
 // import { AppProvider } from 'components/context/app.context';
 // import ProtectedRoute from '@/components/auth';
@@ -111,6 +113,10 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <App>
+      <AppProvider>
+        <RouterProvider router={router} />
+      </AppProvider>
+    </App>
   </StrictMode>,
 )

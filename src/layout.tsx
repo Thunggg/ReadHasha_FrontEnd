@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import AppHeader from "./components/layout/app.header";
 
 const Layout = () => {
     return (
@@ -7,6 +8,7 @@ const Layout = () => {
                 searchTerm={searchTerm}
                 setSearchTerm={setSearchTerm}
             /> */}
+            <AppHeader />
             {/* <Outlet context={[searchTerm, setSearchTerm]} /> */}
             <Outlet />
         </>
