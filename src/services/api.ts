@@ -76,3 +76,8 @@ export const logoutAPI = () => {
     const urlBackend = "/api/auth/logout";
     return axios.post<IBackendRes<null>>(urlBackend);
 }
+
+export const getUserAPI = () => {
+    const urlBackend = "/api/v1/accounts/account-pagination?current=1&pageSize=5";
+    return axios.get<IBackendRes<IModelPaginate<IUser>>>(urlBackend);
+}
