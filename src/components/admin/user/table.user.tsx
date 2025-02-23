@@ -1,11 +1,19 @@
 // import { getUserAPI } from '@/services/api';
 import { getUserAPI } from '@/services/api';
+import { dateRangeValidate } from '@/services/helper';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Divider } from 'antd';
 import { useRef, useState } from 'react';
 
+
+type TSearch = {
+    userName: string;
+    email: string;
+    createdAt: string;
+    createdAtRange: string;
+}
 
 const columns: ProColumns<IUser>[] = [
     {
@@ -16,7 +24,6 @@ const columns: ProColumns<IUser>[] = [
     {
         title: 'User name',
         dataIndex: 'userName',
-        hideInSearch: true,
         render(dom, entity, index, action, schema) {
             return (
                 <>
@@ -28,6 +35,14 @@ const columns: ProColumns<IUser>[] = [
     {
         title: 'Full Name',
         dataIndex: 'fullName',
+        hideInSearch: true,
+        render(dom, entity, index, action, schema) {
+            return (
+                <>
+                    <div>{entity.firstName} {entity.lastName}</div>
+                </>
+            )
+        },
     },
     {
         title: 'Email',
@@ -35,11 +50,21 @@ const columns: ProColumns<IUser>[] = [
         copyable: true,
     },
     {
-        title: 'Create At',
-        dataIndex: 'createdAt',
+        title: 'Date of birthday',
+        dataIndex: 'dob',
+        valueType: 'date',
+        sorter: true,
+        hideInSearch: true,
+    },
+    {
+        title: 'Created At',
+        dataIndex: 'createdAtRange',
+        valueType: 'dateRange',
+        hideInTable: true,
     },
     {
         title: 'Action',
+        hideInSearch: true,
         render(dom, entity, index, action, schema) {
             return (
                 <>
@@ -67,13 +92,32 @@ const TableUser = () => {
     });
 
     return (
-        <ProTable<IUser>
+        <ProTable<IUser, TSearch>
             columns={columns}
             actionRef={actionRef}
             cardBordered
-            request={async (sort, filter) => {
-                console.log(sort, filter);
-                const res = await getUserAPI();
+            request={async (params, sort, filter) => {
+
+                console.log(params, sort, filter);
+
+                let query = "";
+                if (params) {
+                    query += `current=${params.current}&pageSize=${params.pageSize}`
+                    if (params.email) {
+                        query += `&email=${params.email}`
+                    }
+                    if (params.userName) {
+                        query += `&userName=${params.userName}`
+                    }
+
+                    const createDateRange = dateRangeValidate(params.createdAtRange);
+                    if (createDateRange) {
+                        query += `&createdAt=${createDateRange[0]}&createdAt=${createDateRange[1]}`
+                    }
+
+                }
+
+                const res = await getUserAPI(query);
                 if (res.data) {
                     setMeta(res.data.meta);
                 }
@@ -90,6 +134,7 @@ const TableUser = () => {
                     current: meta.current,
                     pageSize: meta.pageSize,
                     showSizeChanger: true,
+                    pageSizeOptions: [5, 10, 20, 50, 100],
                     total: meta.total,
                     showTotal: (total, range) => { return (<div>{range[0]} - {range[1]} trên {total} rows</div>) }
                 }
