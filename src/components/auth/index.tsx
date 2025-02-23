@@ -1,6 +1,6 @@
 import { Button, Result } from "antd";
 import { useCurrentApp } from "../context/app.context";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 interface IProps {
     children: React.ReactNode
@@ -16,7 +16,9 @@ const ProtectedRoute = (props: IProps) => {
                 status="404"
                 title="404"
                 subTitle="Trang của bạn muốn truy cập không tồn tại!"
-                extra={<Button type="primary">Back Home</Button>}
+                extra={<Button type="primary">
+                    <Link to="/login">Đăng nhập</Link>
+                </Button>}
             />
         )
     }
@@ -29,7 +31,9 @@ const ProtectedRoute = (props: IProps) => {
                 status="403"
                 title="403"
                 subTitle="Bạn không có quyền hạn để truy cập trang này!"
-                extra={<Button type="primary">Back Home</Button>}
+                extra={<Button type="primary">
+                    <Link to="/login">Đăng nhập</Link>
+                </Button>}
             />
         )
     }

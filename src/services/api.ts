@@ -71,3 +71,8 @@ export const fetchAccountAPI = () => {
     const urlBackend = "/api/v1/accounts/fetch-account";
     return axios.get<IBackendRes<IUser>>(urlBackend);
 }
+
+export const logoutAPI = () => {
+    const urlBackend = "/api/auth/logout";
+    return axios.post<IBackendRes<null>>(urlBackend);
+}
