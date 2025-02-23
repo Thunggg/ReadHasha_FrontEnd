@@ -117,6 +117,10 @@ const TableUser = () => {
 
                 }
 
+                if (sort && sort.dob) {
+                    query += `&sort=${sort.dob === "ascend" ? "dob" : "-dob"}`
+                } else query += `&sort=-dob`;
+
                 const res = await getUserAPI(query);
                 if (res.data) {
                     setMeta(res.data.meta);
