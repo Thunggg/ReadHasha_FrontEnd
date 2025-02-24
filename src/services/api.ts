@@ -1,5 +1,6 @@
 import axios from "services/axios.customize";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const registerAPI = async (registerData: any) => {
     const urlBackend = "/api/v1/accounts/register";
 
