@@ -1,10 +1,10 @@
 // import { getUserAPI } from '@/services/api';
 import { getUserAPI } from '@/services/api';
 import { dateRangeValidate } from '@/services/helper';
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Divider } from 'antd';
+import { Badge, Button, Divider } from 'antd';
 import { useRef, useState } from 'react';
 import DetailUser from './detail.user';
 
@@ -82,6 +82,33 @@ const TableUser = () => {
             dataIndex: 'createdAtRange',
             valueType: 'dateRange',
             hideInTable: true,
+        },
+        {
+            title: 'Status',
+            dataIndex: 'accStatus',
+            hideInSearch: true,
+            render(dom, entity, index, action, schema) {
+                return (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {entity.accStatus === 1 ? (
+                            <>
+                                <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                                <span>Active</span>
+                            </>
+                        ) : entity.accStatus === 0 ? (
+                            <>
+                                <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+                                <span>Inactive</span>
+                            </>
+                        ) : (
+                            <>
+                                <ClockCircleOutlined style={{ color: '#faad14' }} />
+                                <span>Pending</span>
+                            </>
+                        )}
+                    </div>
+                )
+            },
         },
         {
             title: 'Action',
