@@ -293,18 +293,6 @@ const CreateUser = (props: IProps) => {
                                         <Input.TextArea rows={4} placeholder='Address' />
                                     </Form.Item>
                                 </Col>
-                                {/* <Col span={24}>
-                                    <Form.Item label={null}>
-                                        <div className="button-group">
-                                            <Button type="primary" htmlType="submit" loading={isSubmit}>
-                                                Thêm mới
-                                            </Button>
-                                            <Button type="default" onClick={() => form.resetFields()}>
-                                                Reset
-                                            </Button>
-                                        </div>
-                                    </Form.Item>
-                                </Col> */}
                             </Row>
                         </Form>
                     </div>

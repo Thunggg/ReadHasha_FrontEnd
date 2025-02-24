@@ -81,3 +81,9 @@ export const getUserAPI = (query: string) => {
     const urlBackend = `/api/v1/accounts/account-pagination?${query}`;
     return axios.get<IBackendRes<IModelPaginate<IUser>>>(urlBackend);
 }
+
+export const deleteUserAPI = (userName: string) => {
+    const urlBackend = `/api/v1/accounts/delete-user?username=${userName}`;
+    return axios.delete<IBackendRes<IRegister>>(urlBackend);
+}
+

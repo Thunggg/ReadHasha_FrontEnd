@@ -1,10 +1,10 @@
 // import { getUserAPI } from '@/services/api';
-import { getUserAPI } from '@/services/api';
+import { deleteUserAPI, getUserAPI } from '@/services/api';
 import { dateRangeValidate } from '@/services/helper';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DeleteOutlined, DeleteTwoTone, EditOutlined, EditTwoTone, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Badge, Button, Divider } from 'antd';
+import { Badge, Button, Divider, message, notification, Popconfirm } from 'antd';
 import { useRef, useState } from 'react';
 import DetailUser from './detail.user';
 import CreateUser from './create.user';
@@ -35,8 +35,26 @@ const TableUser = () => {
 
     const [openModalCreate, setOpenModalCreate] = useState<boolean>(false);
 
+    const [isDeleteUser, setIsDeleteUser] = useState<boolean>(false);
+
     const refreshTable = () => {
         actionRef.current?.reload();
+    }
+
+    const handleDeleteUser = async (userName: string) => {
+        setIsDeleteUser(true)
+        const res = await deleteUserAPI(userName);
+        console.log(res);
+        if (res.statusCode == 200) {
+            message.success('Xóa user thành công');
+            refreshTable();
+        } else {
+            notification.error({
+                message: 'Đã có lỗi xảy ra',
+                description: res.message
+            })
+        }
+        setIsDeleteUser(false)
     }
 
     const columns: ProColumns<IUser>[] = [
@@ -122,12 +140,30 @@ const TableUser = () => {
             render(dom, entity, index, action, schema) {
                 return (
                     <>
-                        <EditOutlined
-                            style={{ cursor: 'pointer', marginRight: 15, color: '#f57800' }}
+                        <EditTwoTone
+                            twoToneColor="#f57800"
+                            style={{ cursor: "pointer", marginRight: 15 }}
+                            onClick={() => {
+                                // setDataUpdate(entity);
+                                // setOpenModalUpdate(true);
+                            }}
                         />
-                        <DeleteOutlined
-                            style={{ cursor: 'pointer', marginRight: 15, color: '#ff4d4f' }}
-                        />
+                        <Popconfirm
+                            placement="leftTop"
+                            title={"Xác nhận xóa user"}
+                            description={"Bạn có chắc chắn muốn xóa user này ?"}
+                            onConfirm={() => handleDeleteUser(entity.username)}
+                            okText="Xác nhận"
+                            cancelText="Hủy"
+                            okButtonProps={{ loading: isDeleteUser }}
+                        >
+                            <span style={{ cursor: "pointer", marginLeft: 20 }}>
+                                <DeleteTwoTone
+                                    twoToneColor="#ff4d4f"
+                                    style={{ cursor: "pointer" }}
+                                />
+                            </span>
+                        </Popconfirm>
                     </>
                 );
             },
