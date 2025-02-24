@@ -7,7 +7,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Badge, Button, Divider } from 'antd';
 import { useRef, useState } from 'react';
 import DetailUser from './detail.user';
-import CreateUser from './create.book';
+import CreateUser from './create.user';
 
 
 type TSearch = {

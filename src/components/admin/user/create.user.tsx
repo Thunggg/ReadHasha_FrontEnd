@@ -76,7 +76,10 @@ const CreateUser = (props: IProps) => {
         <>
             <Modal
                 open={openModalCreate}
-                onOk={() => { form.submit() }}
+                onOk={() => {
+                    form.submit();
+                    refreshTable();
+                }}
                 onCancel={() => {
                     form.resetFields();
                     setOpenModalCreate(false);
@@ -290,7 +293,7 @@ const CreateUser = (props: IProps) => {
                                         <Input.TextArea rows={4} placeholder='Address' />
                                     </Form.Item>
                                 </Col>
-                                <Col span={24}>
+                                {/* <Col span={24}>
                                     <Form.Item label={null}>
                                         <div className="button-group">
                                             <Button type="primary" htmlType="submit" loading={isSubmit}>
@@ -301,7 +304,7 @@ const CreateUser = (props: IProps) => {
                                             </Button>
                                         </div>
                                     </Form.Item>
-                                </Col>
+                                </Col> */}
                             </Row>
                         </Form>
                     </div>
