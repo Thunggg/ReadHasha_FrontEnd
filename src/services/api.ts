@@ -10,7 +10,6 @@ export const registerAPI = async (registerData: any) => {
 
     if (response && response.data) {
         const accessToken = response.access_token;
-        console.log(accessToken)
         if (accessToken) {
             localStorage.setItem("access_token", accessToken);
             console.log("Access Token:", accessToken);
@@ -87,3 +86,7 @@ export const deleteUserAPI = (userName: string) => {
     return axios.delete<IBackendRes<IRegister>>(urlBackend);
 }
 
+export const updateUserAPI = (updateData: UpdateUserRequest) => {
+    const urlBackend = `/api/v1/accounts/update-user`;
+    return axios.put<IBackendRes<IUser>>(urlBackend, updateData);
+}

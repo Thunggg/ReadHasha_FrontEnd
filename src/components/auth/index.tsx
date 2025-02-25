@@ -24,7 +24,6 @@ const ProtectedRoute = (props: IProps) => {
     }
 
     const isAdminRoute = location.pathname.includes("admin");
-    console.log(">>>>>> AUTH: ", user?.role);
     if (isAuthenticated === true && isAdminRoute === true && user?.role !== 0) {
         return (
             <Result

@@ -70,4 +70,16 @@ declare global {
         accStatus: number,
         code: string
     }
+
+    interface UpdateUserRequest {
+        username?: string;
+        firstName?: string;
+        lastName?: string;
+        dob?: DATE;
+        phone?: string;
+        address?: string;
+        sex?: number;
+        role?: number; // Thêm dấu ? ở đây
+        email: string;
+    }
 }

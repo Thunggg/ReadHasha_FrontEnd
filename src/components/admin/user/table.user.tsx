@@ -8,6 +8,7 @@ import { Badge, Button, Divider, message, notification, Popconfirm } from 'antd'
 import { useRef, useState } from 'react';
 import DetailUser from './detail.user';
 import CreateUser from './create.user';
+import UpdateUser from './update.user';
 
 
 type TSearch = {
@@ -37,6 +38,9 @@ const TableUser = () => {
 
     const [isDeleteUser, setIsDeleteUser] = useState<boolean>(false);
 
+    const [openModalUpdate, setOpenModalUpdate] = useState<boolean>(false);
+    const [dataUpdate, setDataUpdate] = useState<IUser | null>(null);
+
     const refreshTable = () => {
         actionRef.current?.reload();
     }
@@ -44,7 +48,6 @@ const TableUser = () => {
     const handleDeleteUser = async (userName: string) => {
         setIsDeleteUser(true)
         const res = await deleteUserAPI(userName);
-        console.log(res);
         if (res.statusCode == 200) {
             message.success('Xóa user thành công');
             refreshTable();
@@ -144,8 +147,8 @@ const TableUser = () => {
                             twoToneColor="#f57800"
                             style={{ cursor: "pointer", marginRight: 15 }}
                             onClick={() => {
-                                // setDataUpdate(entity);
-                                // setOpenModalUpdate(true);
+                                setDataUpdate(entity);
+                                setOpenModalUpdate(true);
                             }}
                         />
                         <Popconfirm
@@ -178,9 +181,6 @@ const TableUser = () => {
                 actionRef={actionRef}
                 cardBordered
                 request={async (params, sort, filter) => {
-
-                    console.log(params, sort, filter);
-
                     let query = "";
                     if (params) {
                         query += `current=${params.current}&pageSize=${params.pageSize}`
@@ -249,6 +249,14 @@ const TableUser = () => {
             <CreateUser
                 openModalCreate={openModalCreate}
                 setOpenModalCreate={setOpenModalCreate}
+                refreshTable={refreshTable}
+            />
+
+            <UpdateUser
+                openModalUpdate={openModalUpdate}
+                setOpenModalUpdate={setOpenModalUpdate}
+                dataUpdate={dataUpdate}
+                setDataUpdate={setDataUpdate}
                 refreshTable={refreshTable}
             />
         </>

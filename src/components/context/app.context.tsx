@@ -34,7 +34,7 @@ export const AppProvider = (props: TProps) => {
             // Dừng lại 2 giây trước khi tắt loading
             setTimeout(() => {
                 setIsAppLoading(false);
-            }, 2000);
+            }, 1000);
         };
 
         fetchAccount();
