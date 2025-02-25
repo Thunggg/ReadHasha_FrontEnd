@@ -21,15 +21,18 @@ const VerifyEmail = () => {
             console.log(res);
             if (res && res.statusCode === 200) {
                 message.success("Xác thực email thành công!");
+                localStorage.clear(); // Xóa dữ liệu localStorage nếu cần
+                navigate("/login"); // Chỉ chuyển hướng khi xác thực thành công
             } else {
-                message.error(res.data.message || "Xác thực thất bại!");
+                message.error(res.message || "Xác thực thất bại!");
+                // Không chuyển hướng nếu xác thực thất bại
             }
         } catch (error: any) {
             message.error(error.response?.data?.message || "Lỗi hệ thống!");
+            // Không chuyển hướng nếu có lỗi
+        } finally {
+            setLoading(false); // Đảm bảo tắt trạng thái loading
         }
-        setLoading(false);
-        localStorage.clear();
-        navigate("/login");
     };
 
     const onResendOTP = async () => {
