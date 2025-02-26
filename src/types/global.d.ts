@@ -83,6 +83,18 @@ declare global {
         email: string;
     }
 
+    interface ICategory {
+        catID: number;
+        catName: string;
+        catDescription: string;
+        catStatus: number;
+    }
+
+    interface IBookCategory {
+        bookCateId: number;
+        catId: ICategory; // Key quan trọng cần sửa
+    }
+
     interface IBook {
         bookID: number,
         bookTitle: String,
@@ -94,11 +106,11 @@ declare global {
         image: string,
         bookDescription: string,
         hardcover: number,
-        dimension: number,
+        dimension: string,
         weight: number,
         bookPrice: number,
         bookQuantity: number,
         bookStatus: number,
-        bookCategories: []
+        bookCategories: IBookCategory[];
     }
 }
