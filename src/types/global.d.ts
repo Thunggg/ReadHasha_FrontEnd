@@ -82,4 +82,23 @@ declare global {
         role?: number; // Thêm dấu ? ở đây
         email: string;
     }
+
+    interface IBook {
+        bookID: number,
+        bookTitle: String,
+        author: string,
+        translator: string,
+        publisher: string,
+        publicationYear: number,
+        isbn: string,
+        image: string,
+        bookDescription: string,
+        hardcover: number,
+        dimension: number,
+        weight: number,
+        bookPrice: number,
+        bookQuantity: number,
+        bookStatus: number,
+        bookCategories: []
+    }
 }

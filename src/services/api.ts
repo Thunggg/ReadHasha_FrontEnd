@@ -1,5 +1,6 @@
 import axios from "services/axios.customize";
 
+// ****************************************** AUTH ******************************************
 export const registerAPI = async (registerData: any) => {
     const urlBackend = "/api/v1/accounts/register";
 
@@ -66,14 +67,16 @@ export const LoginAPI = async (username: string, password: string) => {
     });
 };
 
-export const fetchAccountAPI = () => {
-    const urlBackend = "/api/v1/accounts/fetch-account";
-    return axios.get<IBackendRes<IUser>>(urlBackend);
-}
-
 export const logoutAPI = () => {
     const urlBackend = "/api/auth/logout";
     return axios.post<IBackendRes<null>>(urlBackend);
+}
+
+// ****************************************** ACCOUNT ******************************************
+
+export const fetchAccountAPI = () => {
+    const urlBackend = "/api/v1/accounts/fetch-account";
+    return axios.get<IBackendRes<IUser>>(urlBackend);
 }
 
 export const getUserAPI = (query: string) => {
@@ -89,4 +92,10 @@ export const deleteUserAPI = (userName: string) => {
 export const updateUserAPI = (updateData: UpdateUserRequest) => {
     const urlBackend = `/api/v1/accounts/update-user`;
     return axios.put<IBackendRes<IUser>>(urlBackend, updateData);
+}
+
+// ****************************************** Book ******************************************
+export const getBookAPI = (query: string) => {
+    const urlBackend = `/api/v1/books/book-pagination?${query}`;
+    return axios.get<IBackendRes<IModelPaginate<IBook>>>(urlBackend);
 }

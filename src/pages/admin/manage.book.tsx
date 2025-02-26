@@ -1,8 +1,10 @@
+import TableBook from "@/components/admin/book/table.book"
+
 const ManageBookPage = () => {
     return (
-        <div>
-            ManageBook Page
-        </div>
+        <>
+            <TableBook />
+        </>
     )
 }
 

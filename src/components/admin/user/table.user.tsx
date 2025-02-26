@@ -1,10 +1,10 @@
 // import { getUserAPI } from '@/services/api';
 import { deleteUserAPI, getUserAPI } from '@/services/api';
 import { dateRangeValidate } from '@/services/helper';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DeleteOutlined, DeleteTwoTone, EditOutlined, EditTwoTone, PlusOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DeleteTwoTone, EditTwoTone, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Badge, Button, Divider, message, notification, Popconfirm } from 'antd';
+import { Button, message, notification, Popconfirm } from 'antd';
 import { useRef, useState } from 'react';
 import DetailUser from './detail.user';
 import CreateUser from './create.user';
