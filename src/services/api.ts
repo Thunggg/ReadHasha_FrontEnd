@@ -99,3 +99,9 @@ export const getBookAPI = (query: string) => {
     const urlBackend = `/api/v1/books/book-pagination?${query}`;
     return axios.get<IBackendRes<IModelPaginate<IBook>>>(urlBackend);
 }
+
+// ****************************************** Category ******************************************
+export const getCategoryAPI = () => {
+    const urlBackend = `/api/v1/categories/`;
+    return axios.get<IBackendRes<ICategoryGetAll<ICategory>>>(urlBackend);
+}

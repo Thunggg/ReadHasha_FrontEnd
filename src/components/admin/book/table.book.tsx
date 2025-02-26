@@ -1,10 +1,11 @@
-import { getBookAPI, getUserAPI } from '@/services/api';
+import { getBookAPI, getCategoryAPI, getUserAPI } from '@/services/api';
 import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, Divider } from 'antd';
 import { useRef, useState } from 'react';
 import DetailBook from './detail.book';
+import CreateBook from './create.book';
 
 type TSearch = {
     bookTitle: string;
@@ -17,6 +18,10 @@ type TSearch = {
 const TableBook = () => {
     const actionRef = useRef<ActionType>();
 
+    const refreshTable = () => {
+        actionRef.current?.reload();
+    }
+
     const [meta, setMeta] = useState({
         current: 1,
         pageSize: 5,
@@ -27,6 +32,8 @@ const TableBook = () => {
     const [openViewDetail, setOpenViewDetail] = useState<boolean>(false);
     const [dataViewDetail, setDataViewDetail] = useState<IBook | null>(null);
 
+    const [openModalCreate, setOpenModalCreate] = useState<boolean>(false);
+    const [categoryData, setCategoryData] = useState<ICategory[]>([]);
 
     const columns: ProColumns<IBook>[] = [
         {
@@ -43,7 +50,6 @@ const TableBook = () => {
                         <a onClick={() => {
                             setOpenViewDetail(true);
                             setDataViewDetail(entity);
-                            console.log(entity);
                         }}>{entity.bookTitle}</a>
                     </>
                 )
@@ -107,8 +113,12 @@ const TableBook = () => {
                 <>
                     <EditOutlined
                         style={{ cursor: 'pointer', marginRight: 15, color: '#f57800' }}
-                        onClick={() => {
-
+                        onClick={async () => {
+                            setOpenModalCreate(true);
+                            const res = await getCategoryAPI();
+                            if (res && res.data) {
+                                setCategoryData(res.data.categories);
+                            }
                         }}
                     />
                     <DeleteOutlined
@@ -189,11 +199,20 @@ const TableBook = () => {
                     </Button>
                 ]}
             />
+
             <DetailBook
                 openViewDetail={openViewDetail}
                 setOpenViewDetail={setOpenViewDetail}
                 dataViewDetail={dataViewDetail}
                 setDataViewDetail={setDataViewDetail}
+            />
+
+            <CreateBook
+                openModalCreate={openModalCreate}
+                setOpenModalCreate={setOpenModalCreate}
+                refreshTable={refreshTable}
+                categoryData={categoryData}
+                setCategoryData={setCategoryData}
             />
         </>
 

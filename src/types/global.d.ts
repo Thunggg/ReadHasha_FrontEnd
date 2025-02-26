@@ -95,6 +95,10 @@ declare global {
         catId: ICategory; // Key quan trọng cần sửa
     }
 
+    interface ICategoryGetAll<T> {
+        categories: T[];
+    }
+
     interface IBook {
         bookID: number,
         bookTitle: String,
