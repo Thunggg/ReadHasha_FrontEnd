@@ -113,3 +113,12 @@ export const createBookAPI = (formData: FormData) => {
         },
     });
 };
+
+export const deleteBookAPI = (bookID: number) => {
+    return axios.delete<IBackendRes<IBook>>(`/api/v1/books/delete-book/${bookID}`, {
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+            'Content-Type': 'application/json'
+        }
+    });
+};

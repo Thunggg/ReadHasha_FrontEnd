@@ -1,8 +1,8 @@
-import { getBookAPI, getCategoryAPI, getUserAPI } from '@/services/api';
-import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { deleteBookAPI, getBookAPI, getCategoryAPI, getUserAPI } from '@/services/api';
+import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, DeleteTwoTone, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Divider } from 'antd';
+import { Button, Divider, message, notification, Popconfirm } from 'antd';
 import { useRef, useState } from 'react';
 import DetailBook from './detail.book';
 import CreateBook from './create.book';
@@ -34,6 +34,24 @@ const TableBook = () => {
 
     const [openModalCreate, setOpenModalCreate] = useState<boolean>(false);
     const [categoryData, setCategoryData] = useState<ICategory[]>([]);
+
+    const [isDeleteBook, setIsDeleteBook] = useState<boolean>(false);
+
+
+    const handleDeleteBook = async (bookID: number) => {
+        setIsDeleteBook(true)
+        const res = await deleteBookAPI(bookID);
+        if (res.statusCode == 200) {
+            message.success('Xóa sách thành công!');
+            refreshTable();
+        } else {
+            notification.error({
+                message: 'Đã có lỗi xảy ra',
+                description: res.message
+            })
+        }
+        setIsDeleteBook(false)
+    }
 
     const columns: ProColumns<IBook>[] = [
         {
@@ -117,10 +135,22 @@ const TableBook = () => {
 
                         }}
                     />
-                    <DeleteOutlined
-                        style={{ cursor: 'pointer', marginRight: 15, color: '#ff4d4f' }}
-                        onClick={() => console.log("Delete", entity.bookID)}
-                    />
+                    <Popconfirm
+                        placement="leftTop"
+                        title={"Xác nhận xóa sách"}
+                        description={"Bạn có chắc chắn muốn xóa quyền sách này ?"}
+                        onConfirm={() => handleDeleteBook(entity.bookID)}
+                        okText="Xác nhận"
+                        cancelText="Hủy"
+                        okButtonProps={{ loading: isDeleteBook }}
+                    >
+                        <span style={{ cursor: "pointer", marginLeft: 20 }}>
+                            <DeleteTwoTone
+                                twoToneColor="#ff4d4f"
+                                style={{ cursor: "pointer" }}
+                            />
+                        </span>
+                    </Popconfirm>
                 </>
             ),
         },
