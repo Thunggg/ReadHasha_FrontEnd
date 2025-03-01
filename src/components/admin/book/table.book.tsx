@@ -6,6 +6,7 @@ import { Button, Divider, message, notification, Popconfirm } from 'antd';
 import { useRef, useState } from 'react';
 import DetailBook from './detail.book';
 import CreateBook from './create.book';
+import EditBook from './update.book';
 
 type TSearch = {
     bookTitle: string;
@@ -37,6 +38,8 @@ const TableBook = () => {
 
     const [isDeleteBook, setIsDeleteBook] = useState<boolean>(false);
 
+    const [openModalUpdate, setOpenModalUpdate] = useState<boolean>(false);
+    const [dataUpdate, setDataUpdate] = useState<IBook | null>(null);
 
     const handleDeleteBook = async (bookID: number) => {
         setIsDeleteBook(true)
@@ -132,7 +135,12 @@ const TableBook = () => {
                     <EditOutlined
                         style={{ cursor: 'pointer', marginRight: 15, color: '#f57800' }}
                         onClick={async () => {
-
+                            const res = await getCategoryAPI();
+                            if (res && res.data) {
+                                setCategoryData(res.data.categories);
+                            }
+                            setOpenModalUpdate(true);
+                            setDataUpdate(entity);
                         }}
                     />
                     <Popconfirm
@@ -244,6 +252,15 @@ const TableBook = () => {
                 refreshTable={refreshTable}
                 categoryData={categoryData}
                 setCategoryData={setCategoryData}
+            />
+
+            <EditBook
+                openModalUpdate={openModalUpdate}
+                setOpenModalUpdate={setOpenModalUpdate}
+                dataUpdate={dataUpdate}
+                setDataUpdate={setDataUpdate}
+                refreshTable={refreshTable}
+                categoryData={categoryData}
             />
         </>
 

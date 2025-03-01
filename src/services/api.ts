@@ -122,3 +122,16 @@ export const deleteBookAPI = (bookID: number) => {
         }
     });
 };
+
+export const updateBookAPI = (formData: FormData) => {
+    return axios.put<IBackendRes<IBook>>(
+        '/api/v1/books/update-book', // Khớp với endpoint backend
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                Authorization: `Bearer ${localStorage.getItem('access_token')}`
+            }
+        }
+    );
+};

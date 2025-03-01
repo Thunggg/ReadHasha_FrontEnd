@@ -1,9 +1,9 @@
-// import { createBookAPI } from '@/services/api';
 import { Button, Col, Form, Input, InputNumber, message, Modal, Row, Select, Upload } from 'antd';
 import { FormProps } from 'antd/lib';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { createBookAPI } from '@/services/api';
+import { updateBookAPI } from '@/services/api';
+// import { updateBookAPI } from '@/services/api';
 
 type BookFormType = {
     bookTitle: string;
@@ -23,85 +23,134 @@ type BookFormType = {
 };
 
 interface IProps {
-    openModalCreate: boolean;
-    setOpenModalCreate: (v: boolean) => void;
+    openModalUpdate: boolean;
+    setOpenModalUpdate: (v: boolean) => void;
     refreshTable: () => void;
+    dataUpdate: IBook | null;
+    setDataUpdate: (v: IBook | null) => void;
     categoryData: ICategory[];
-    setCategoryData: (v: ICategory[]) => void;
 }
 
-const CreateBook = (props: IProps) => {
+const EditBook = (props: IProps) => {
     const [form] = Form.useForm();
     const [isSubmit, setIsSubmit] = useState(false);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
-    const { openModalCreate, setOpenModalCreate, refreshTable, categoryData } = props;
+    const {
+        openModalUpdate,
+        setOpenModalUpdate,
+        refreshTable,
+        dataUpdate,
+        setDataUpdate,
+        categoryData
+    } = props;
+
+    useEffect(() => {
+        if (dataUpdate) {
+            form.setFieldsValue({
+                ...dataUpdate,
+                bookCategories: dataUpdate.bookCategories?.map(c => c.catId.catID),
+                publicationYear: dataUpdate.publicationYear,
+            });
+
+            const imageURL = `${import.meta.env.VITE_BACKEND_URL}${dataUpdate?.image}`;
+
+            if (dataUpdate.image) {
+                setFileList([{
+                    uid: '-1',
+                    name: 'current-image',
+                    status: 'done',
+                    url: imageURL,
+                }]);
+            }
+        }
+
+    }, [dataUpdate, form]);
 
     const onFinish: FormProps<BookFormType>['onFinish'] = async (values) => {
         setIsSubmit(true);
         try {
             const formData = new FormData();
 
-            // 1. Tạo object book từ values và convert sang JSON
-            const bookData = {
-                bookTitle: values.bookTitle,
-                author: values.author,
-                publisher: values.publisher,
-                publicationYear: values.publicationYear,
-                isbn: values.isbn,
-                bookStatus: values.bookStatus,
-                bookDescription: values.bookDescription,
-                hardcover: values.hardcover,
-                dimension: values.dimension,
-                weight: values.weight,
-                bookPrice: values.bookPrice,
-                bookQuantity: values.bookQuantity,
-                bookCategories: values.bookCategories?.map(catId => ({
+            // 1. Xử lý chuyển đổi danh mục
+            const bookCategories: IBookCategory[] = values.bookCategories?.map(catId => {
+                // Tìm category trong danh sách
+                const category = categoryData.find(c => c.catID === catId);
+                if (!category) {
+                    throw new Error(`Không tìm thấy danh mục với ID: ${catId}`);
+                }
+
+                return {
+                    bookCateId: 0, // Backend sẽ tự generate
                     catId: {
-                        catID: catId
+                        catID: category.catID,
+                        catName: category.catName,
+                        catDescription: category.catDescription,
+                        catStatus: category.catStatus
                     }
-                })) || []
+                } as IBookCategory;
+            }) || [];
+
+            // 2. Tạo object book đúng chuẩn interface
+            const bookData: IBook = {
+                ...dataUpdate, // Giữ các giá trị cũ không thay đổi
+                ...values,
+                bookID: dataUpdate?.bookID || 0,
+                publicationYear: Number(values.publicationYear),
+                hardcover: Number(values.hardcover),
+                weight: Number(values.weight),
+                bookPrice: Number(values.bookPrice),
+                bookQuantity: Number(values.bookQuantity),
+                bookStatus: Number(values.bookStatus),
+                bookCategories: bookCategories
             };
 
-            // 2. Thêm phần "book" là 1 chuỗi JSON
+            // 3. Thêm dữ liệu vào FormData
             formData.append('book', JSON.stringify(bookData));
 
-            // 3. Thêm phần "image" (nếu có)
-            if (fileList.length > 0 && fileList[0].originFileObj) {
-                formData.append('image', fileList[0].originFileObj);
+            // 4. Xử lý ảnh
+            if (fileList.length > 0) {
+                // Trường hợp có ảnh mới
+                if (fileList[0].originFileObj) {
+                    formData.append('image', fileList[0].originFileObj);
+                }
+                // Trường hợp giữ ảnh cũ (gửi lại URL ảnh)
+                else if (fileList[0].url) {
+                    formData.append('image', fileList[0].url);
+                }
             }
 
-            const res = await createBookAPI(formData);
-            console.log(res);
+            // 5. Gọi API update
+            const res = await updateBookAPI(formData);
+
             if (res.data && res.statusCode === 200) {
-                message.success('Tạo mới sách thành công');
+                message.success('Cập nhật sách thành công');
                 form.resetFields();
                 setFileList([]);
-                setOpenModalCreate(false);
+                setOpenModalUpdate(false);
                 refreshTable();
             } else {
-                message.error(res.message || 'Lỗi không xác định');
+                message.error(res.message || 'Cập nhật thất bại');
             }
         } catch (error: any) {
-            message.error("Lỗi hệ thống: " + (error.response?.data?.message || error.message));
+            message.error(error.response?.data?.message || error.message || "Lỗi hệ thống");
+        } finally {
+            setIsSubmit(false);
         }
-        setIsSubmit(false);
     };
 
     return (
         <Modal
-            open={openModalCreate}
-            // onOk={() => form.submit()}
-            onOk={() => {
-                form.submit();
-                refreshTable();
-            }}
+            open={openModalUpdate}
+            onOk={() => form.submit()}
             onCancel={() => {
                 form.resetFields();
-                setOpenModalCreate(false);
+                setDataUpdate(null);
+                setFileList([]);
+                setOpenModalUpdate(false);
             }}
             destroyOnClose={true}
             okButtonProps={{ loading: isSubmit }}
-            okText={"Tạo mới"}
+            okText={"Cập nhật"}
             cancelText={"Hủy"}
             confirmLoading={isSubmit}
             width={800}
@@ -118,12 +167,12 @@ const CreateBook = (props: IProps) => {
                     borderBottom: '2px solid #f0f0f0',
                     paddingBottom: '12px'
                 }}>
-                    Thêm Sách Mới
+                    Chỉnh Sửa Thông Tin Sách
                 </h2>
 
                 <Form
                     form={form}
-                    name="createBook"
+                    name="editBook"
                     labelCol={{ span: 8 }}
                     wrapperCol={{ span: 16 }}
                     initialValues={{ bookStatus: 1 }}
@@ -133,7 +182,6 @@ const CreateBook = (props: IProps) => {
                     labelWrap
                 >
                     <Row gutter={24}>
-                        {/* Cột trái - Thông tin cơ bản */}
                         <Col span={12}>
                             <div style={{
                                 padding: '16px',
@@ -207,7 +255,6 @@ const CreateBook = (props: IProps) => {
                             </div>
                         </Col>
 
-                        {/* Cột phải - Thông tin bán hàng */}
                         <Col span={12}>
                             <div style={{
                                 padding: '16px',
@@ -286,21 +333,36 @@ const CreateBook = (props: IProps) => {
                                     <Upload
                                         listType="picture-card"
                                         beforeUpload={() => false}
-                                        onChange={({ fileList }) => setFileList(fileList)}
+                                        onChange={({ fileList }) => {
+                                            // Thêm URL preview cho file mới
+                                            const newFileList = fileList.map(file => {
+                                                if (file.originFileObj) {
+                                                    file.url = URL.createObjectURL(file.originFileObj);
+                                                }
+                                                return file;
+                                            });
+                                            setFileList(newFileList);
+                                        }}
                                         accept="image/*"
                                         maxCount={1}
                                         fileList={fileList}
-                                        style={{ display: 'block' }}
+                                        onPreview={(file) => {
+                                            // Xử lý xem ảnh phóng to
+                                            Modal.info({
+                                                title: 'Xem trước ảnh',
+                                                content: (
+                                                    <img
+                                                        alt="preview"
+                                                        src={file.url || file.thumbUrl}
+                                                        style={{ width: '100%' }}
+                                                    />
+                                                ),
+                                            });
+                                        }}
                                     >
                                         {fileList.length < 1 && (
-                                            <div style={{
-                                                color: '#1890ff',
-                                                fontSize: '14px',
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center'
-                                            }}>
-                                                <span style={{ fontSize: '24px' }}>+</span>
+                                            <div style={{ /* ... */ }}>
+                                                <span>+</span>
                                                 <span>Tải lên ảnh</span>
                                             </div>
                                         )}
@@ -310,7 +372,6 @@ const CreateBook = (props: IProps) => {
                         </Col>
                     </Row>
 
-                    {/* Thông tin bổ sung */}
                     <div style={{
                         padding: '16px',
                         background: '#f8f9fa',
@@ -380,4 +441,4 @@ const CreateBook = (props: IProps) => {
     );
 };
 
-export default CreateBook;
+export default EditBook;
