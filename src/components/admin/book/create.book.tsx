@@ -3,6 +3,7 @@ import { Button, Col, Form, Input, InputNumber, message, Modal, Row, Select, Upl
 import { FormProps } from 'antd/lib';
 import { useState } from 'react';
 import type { UploadFile } from 'antd/es/upload/interface';
+import { createBookAPI } from '@/services/api';
 
 type BookFormType = {
     bookTitle: string;
@@ -40,38 +41,47 @@ const CreateBook = (props: IProps) => {
         try {
             const formData = new FormData();
 
-            // Thêm các trường dữ liệu
-            Object.entries(values).forEach(([key, value]) => {
-                if (value !== undefined) {
-                    if (Array.isArray(value)) {
-                        value.forEach(v => formData.append(key, v.toString()));
-                    } else {
-                        formData.append(key, value.toString());
+            // 1. Tạo object book từ values và convert sang JSON
+            const bookData = {
+                bookTitle: values.bookTitle,
+                author: values.author,
+                publisher: values.publisher,
+                publicationYear: values.publicationYear,
+                isbn: values.isbn,
+                bookDescription: values.bookDescription,
+                hardcover: values.hardcover,
+                dimension: values.dimension,
+                weight: values.weight,
+                bookPrice: values.bookPrice,
+                bookQuantity: values.bookQuantity,
+                bookCategories: values.bookCategories?.map(catId => ({
+                    catId: {
+                        catID: catId
                     }
-                }
-            });
+                })) || []
+            };
 
-            // Thêm ảnh
-            if (fileList.length > 0) {
-                formData.append('image', fileList[0].originFileObj as File);
+            // 2. Thêm phần "book" là 1 chuỗi JSON
+            formData.append('book', JSON.stringify(bookData));
+
+            // 3. Thêm phần "image" (nếu có)
+            if (fileList.length > 0 && fileList[0].originFileObj) {
+                formData.append('image', fileList[0].originFileObj);
             }
 
-            try {
-                // const res = await createBookAPI(formData);
-                // if (res.data && res.statusCode === 201) {
-                //     message.success('Tạo mới sách thành công');
-                //     form.resetFields();
-                //     setFileList([]);
-                //     setOpenModalCreate(false);
-                //     refreshTable();
-                // } else {
-                //     message.error(res.error);
-                // }
-            } catch (error: any) {
-                message.error("Lỗi hệ thống: " + error.response?.data?.message || error.message);
+            const res = await createBookAPI(formData);
+            console.log(res);
+            if (res.data && res.statusCode === 200) {
+                message.success('Tạo mới sách thành công');
+                form.resetFields();
+                setFileList([]);
+                setOpenModalCreate(false);
+                refreshTable();
+            } else {
+                message.error(res.message || 'Lỗi không xác định');
             }
-        } catch (error) {
-            message.error('Failed to add book!');
+        } catch (error: any) {
+            message.error("Lỗi hệ thống: " + (error.response?.data?.message || error.message));
         }
         setIsSubmit(false);
     };
@@ -80,7 +90,10 @@ const CreateBook = (props: IProps) => {
         <Modal
             open={openModalCreate}
             // onOk={() => form.submit()}
-            onOk={() => console.log(categoryData)}
+            onOk={() => {
+                form.submit();
+                refreshTable();
+            }}
             onCancel={() => {
                 form.resetFields();
                 setOpenModalCreate(false);

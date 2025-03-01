@@ -114,11 +114,7 @@ const TableBook = () => {
                     <EditOutlined
                         style={{ cursor: 'pointer', marginRight: 15, color: '#f57800' }}
                         onClick={async () => {
-                            setOpenModalCreate(true);
-                            const res = await getCategoryAPI();
-                            if (res && res.data) {
-                                setCategoryData(res.data.categories);
-                            }
+
                         }}
                     />
                     <DeleteOutlined
@@ -138,7 +134,6 @@ const TableBook = () => {
                 actionRef={actionRef}
                 cardBordered
                 request={async (params, sort, filter) => {
-                    console.log(params)
                     let query = "";
                     if (params) {
                         query += `current=${params.current}&pageSize=${params.pageSize}`
@@ -192,7 +187,13 @@ const TableBook = () => {
                     <Button
                         key="button"
                         icon={<PlusOutlined />}
-                        onClick={() => actionRef.current?.reload()}
+                        onClick={async () => {
+                            setOpenModalCreate(true);
+                            const res = await getCategoryAPI();
+                            if (res && res.data) {
+                                setCategoryData(res.data.categories);
+                            }
+                        }}
                         type="primary"
                     >
                         Add new

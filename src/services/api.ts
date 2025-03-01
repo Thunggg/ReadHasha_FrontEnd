@@ -105,3 +105,11 @@ export const getCategoryAPI = () => {
     const urlBackend = `/api/v1/categories/`;
     return axios.get<IBackendRes<ICategoryGetAll<ICategory>>>(urlBackend);
 }
+
+export const createBookAPI = (formData: FormData) => {
+    return axios.post<IBackendRes<IBook>>('/api/v1/books/add-book', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+};

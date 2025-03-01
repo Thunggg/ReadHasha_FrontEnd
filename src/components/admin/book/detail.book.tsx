@@ -17,7 +17,7 @@ const DetailBook = (props: IProps) => {
         setDataViewDetail(null);
     }
 
-    // const avatarURL = `${import.meta.env.VITE_BACKEND_URL}/images/avatar/${dataViewDetail?.avatar}`
+    const bookImageURL = `${import.meta.env.VITE_BACKEND_URL}${dataViewDetail?.image}`
     return (
         <>
             <Drawer
@@ -28,7 +28,7 @@ const DetailBook = (props: IProps) => {
                 extra={
                     <Image
                         width={240}
-                        src={dataViewDetail?.image}
+                        src={bookImageURL}
                         alt="Ảnh bìa sách"
                         style={{
                             borderRadius: 8,
@@ -97,8 +97,8 @@ const DetailBook = (props: IProps) => {
                                 <Badge
                                     status={dataViewDetail?.bookStatus === 1 ? "success" : "error"}
                                     text={dataViewDetail?.bookStatus === 1 ?
-                                        <span style={{ color: '#52c41a' }}>Còn hàng</span> :
-                                        <span style={{ color: '#ff4d4f' }}>Hết hàng</span>}
+                                        <span style={{ color: '#52c41a' }}>Còn bán</span> :
+                                        <span style={{ color: '#ff4d4f' }}>Ngưng bán</span>}
                                 />
                             </div>
                         </Descriptions.Item>
