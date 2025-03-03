@@ -135,3 +135,8 @@ export const updateBookAPI = (formData: FormData) => {
         }
     );
 };
+
+export const getBooksByCategoryAPI = (categoryIds: string) => {
+    const urlBackend = `/api/v1/categories/books-by-category?categoryIds=${categoryIds}`;
+    return axios.get<IBackendRes<IBook[]>>(urlBackend);
+};

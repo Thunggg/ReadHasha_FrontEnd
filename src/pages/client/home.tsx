@@ -10,7 +10,6 @@ import type { FormProps } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import 'styles/home.scss';
-
 type FieldType = {
     range: {
         from: number;
@@ -57,21 +56,26 @@ const HomePage = () => {
     }, [current, pageSize, filter, sortQuery]);
 
     const fetchBook = async () => {
-        setIsLoading(true)
-        let query = `current=${current}&pageSize=${pageSize}`;
-        if (filter) {
-            query += `&${filter}`;
-        }
-        if (sortQuery) {
-            query += `&${sortQuery}`;
-        }
+        setIsLoading(true);
 
-        const res = await getBookAPI(query);
-        if (res && res.data) {
-            setListBook(res.data.result);
-            setTotal(res.data.meta.total)
+        // Thêm setTimeout để giả lập delay 1 giây
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        try {
+            let query = `current=${current}&pageSize=${pageSize}`;
+            if (filter) query += `&${filter}`;
+            if (sortQuery) query += `&${sortQuery}`;
+
+            const res = await getBookAPI(query);
+            if (res?.data) {
+                setListBook(res.data.result);
+                setTotal(res.data.meta.total);
+            }
+        } catch (error) {
+            console.error("Fetch book error:", error);
+        } finally {
+            setIsLoading(false);
         }
-        setIsLoading(false)
     }
 
     const handleOnchangePage = (pagination: { current: number, pageSize: number }) => {
@@ -92,7 +96,7 @@ const HomePage = () => {
             const cate = values.category;
             if (cate && cate.length > 0) {
                 const f = cate.join(',');
-                setFilter(`category=${f}`)
+                setFilter(`categoryIds=${f}`)
             } else {
                 //reset data -> fetch all
                 setFilter('');
@@ -250,7 +254,7 @@ const HomePage = () => {
                         </Col>
 
                         <Col md={20} xs={24} >
-                            <Spin spinning={isLoading} tip="Loading...">
+                            <Spin spinning={isLoading} size='large' tip="Loading...">
                                 <div style={{ padding: "20px", background: '#fff', borderRadius: 5 }}>
                                     <Row >
                                         <Tabs
@@ -269,29 +273,81 @@ const HomePage = () => {
                                             </div>
                                         </Col>
                                     </Row>
-                                    {<Row className='customize-row'>
-                                        {listBook?.map((item, index) => {
-                                            return (
+                                    <Row className='customize-row'>
+                                        {listBook?.length > 0 ? (
+                                            listBook.map((item, index) => (
                                                 <div
                                                     onClick={() => navigate(`/book/${item.bookID}`)}
-                                                    className="column" key={`book-${index}`}>
+                                                    className="column"
+                                                    key={`book-${index}`}
+                                                >
                                                     <div className='wrapper'>
                                                         <div className='thumbnail'>
-                                                            <img src={`${import.meta.env.VITE_BACKEND_URL}${item.image}`} alt="thumbnail book" />
+                                                            <img
+                                                                src={`${import.meta.env.VITE_BACKEND_URL}${item.image}`}
+                                                                alt="thumbnail book"
+                                                            />
                                                         </div>
                                                         <div className='text'>{item.bookTitle}</div>
                                                         <div className='price'>
-                                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item?.bookPrice ?? 0)}
+                                                            {new Intl.NumberFormat('vi-VN', {
+                                                                style: 'currency',
+                                                                currency: 'VND'
+                                                            }).format(item?.bookPrice ?? 0)}
                                                         </div>
                                                         <div className='rating'>
-                                                            <Rate value={5} disabled style={{ color: '#ffce3d', fontSize: 10 }} />
+                                                            <Rate
+                                                                value={5}
+                                                                disabled
+                                                                style={{ color: '#ffce3d', fontSize: 10 }}
+                                                            />
                                                             <span>Đã bán 120</span>
                                                         </div>
                                                     </div>
                                                 </div>
+                                            ))
+                                        ) : (
+                                            !isLoading && (
+                                                <div style={{
+                                                    width: '100%',
+                                                    padding: '40px 20px',
+                                                    textAlign: 'center',
+                                                    backgroundColor: '#f8f9fa',
+                                                    borderRadius: 8,
+                                                    margin: '20px 0'
+                                                }}>
+                                                    <div style={{
+                                                        fontSize: 48,
+                                                        color: '#ced4da',
+                                                        marginBottom: 16
+                                                    }}>
+                                                        <i className="far fa-folder-open"></i>
+                                                    </div>
+
+                                                    <h3 style={{
+                                                        color: '#495057',
+                                                        fontSize: 20,
+                                                        fontWeight: 500,
+                                                        marginBottom: 8
+                                                    }}>
+                                                        Không tìm thấy sách phù hợp
+                                                    </h3>
+
+                                                    <p style={{
+                                                        color: '#868e96',
+                                                        fontSize: 14,
+                                                        lineHeight: 1.5,
+                                                        maxWidth: 500,
+                                                        margin: '0 auto'
+                                                    }}>
+                                                        Hãy thử điều chỉnh bộ lọc hoặc thử các từ khóa tìm kiếm khác nhau.
+                                                        <br />
+                                                        Bạn cũng có thể xem các danh mục sách phổ biến của chúng tôi.
+                                                    </p>
+                                                </div>
                                             )
-                                        })}
-                                    </Row>}
+                                        )}
+                                    </Row>
                                     <div style={{ marginTop: 30 }}></div>
                                     <Row style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
                                         <Pagination

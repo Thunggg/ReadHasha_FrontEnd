@@ -1,100 +1,112 @@
 .homepage-container {
-    padding: 0 15px; // Thêm padding hai bên cho thoáng
-    .customize-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px 10px;
-        justify-content: flex-start; // Căn trái sản phẩm cho gọn gàng
+    padding: 0 15px;
+}
 
-        .column {
-            width: calc(20% - 8px);
-            background: #fff;
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.3s ease; // Hiệu ứng mượt mà hơn
+.customize-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
 
-            &:hover {
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-                transform: translateY(-5px); // Nâng nhẹ khi hover
-            }
+.column {
+    flex: 0 0 calc(20% - 16px);
+    min-height: 380px;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
 
-            .wrapper {
-                cursor: pointer;
-                padding: 10px;
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
+.column:hover {
+    transform: translateY(-5px);
+}
 
-                .thumbnail {
-                    max-height: 180px; // Giảm nhẹ chiều cao thumbnail
-                    max-width: 100%;
-                    margin: 0 auto;
-                    overflow: hidden;
+.wrapper {
+    padding: 15px;
+    cursor: pointer;
+    height: 95%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
 
-                    img {
-                        width: 100%;
-                        height: 100%;
-                        object-fit: cover; // Đảm bảo ảnh không bị méo
-                        transition: transform 0.3s ease;
-                    }
+.thumbnail {
+    position: relative;
+    padding-top: 133%; /* Tỷ lệ 3:4 */
+    overflow: hidden;
+}
 
-                    &:hover img {
-                        transform: scale(1.05); // Zoom nhẹ ảnh khi hover
-                    }
-                }
+.thumbnail img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
 
-                .text {
-                    padding: 10px 0;
-                    font-size: 0.9rem; // Tăng nhẹ kích thước chữ
-                    height: 48px;
-                    font-weight: 500;
-                    color: #333;
-                    display: -webkit-box;
-                    -webkit-line-clamp: 2;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
+.column:hover .thumbnail img {
+    transform: scale(1.05);
+}
 
-                .price {
-                    font-size: 1rem;
-                    font-weight: 600;
-                    color: #e74c3c; // Màu đỏ nổi bật cho giá
-                }
+.text {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    height: auto;
+    max-height: 80px; /* Giới hạn chiều cao nhưng đảm bảo không bị mất chữ */
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+    color: #333;
+}
 
-                .rating {
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                    font-size: 0.8rem;
-                    color: #666;
-                }
-            }
-        }
+.price {
+    margin-top: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #d0021b;
+}
 
-        // Responsive
-        @media screen and (max-width: 600px) {
-            .column {
-                width: calc(50% - 8px);
-            }
-        }
+.rating {
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: #666;
+}
 
-        @media screen and (max-width: 800px) and (min-width: 601px) {
-            .column {
-                width: calc(33.33% - 8px); // 3 cột cho màn hình trung bình
-            }
-        }
-
-        @media screen and (max-width: 1024px) and (min-width: 801px) {
-            .column {
-                width: calc(25% - 8px); // 4 cột cho màn hình lớn hơn
-            }
-        }
+/* Responsive */
+@media (max-width: 1200px) {
+    .column {
+        flex: 0 0 calc(25% - 15px);
     }
 }
 
-// Cải thiện bộ lọc
+@media (max-width: 992px) {
+    .column {
+        flex: 0 0 calc(33.33% - 13.33px);
+    }
+}
+
+@media (max-width: 768px) {
+    .column {
+        flex: 0 0 calc(50% - 10px);
+    }
+}
+
+@media (max-width: 576px) {
+    .column {
+        flex: 0 0 100%;
+    }
+}
+
+/* Cải thiện bộ lọc */
 .filter-container {
     background: #fff;
     border-radius: 8px;
@@ -122,7 +134,7 @@
     }
 }
 
-// Tabs
+/* Tabs */
 .ant-tabs-tab {
     font-weight: 500;
     padding: 10px 20px !important;
