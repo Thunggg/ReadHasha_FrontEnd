@@ -1,5 +1,6 @@
 // import MobileFilter from '@/components/client/book/mobile.filter';
 // import { getBooksAPI, getCategoryAPI } from '@/services/api';
+import { getBookAPI, getCategoryAPI } from '@/services/api';
 import { FilterTwoTone, ReloadOutlined } from '@ant-design/icons';
 import {
     Row, Col, Form, Checkbox, Divider, InputNumber,
@@ -22,9 +23,7 @@ type FieldType = {
 const HomePage = () => {
     // const [searchTerm] = useOutletContext() as any;
 
-    const [listCategory, setListCategory] = useState<{
-        label: string, value: string
-    }[]>([]);
+    const [listCategory, setListCategory] = useState<ICategory[]>([]);
 
     const [listBook, setListBook] = useState<IBook[]>([]);
     const [current, setCurrent] = useState<number>(1);
@@ -40,44 +39,40 @@ const HomePage = () => {
 
     const navigate = useNavigate();
 
-    // useEffect(() => {
-    //     const initCategory = async () => {
-    //         const res = await getCategoryAPI();
-    //         if (res && res.data) {
-    //             const d = res.data.map(item => {
-    //                 return { label: item, value: item }
-    //             })
-    //             setListCategory(d);
-    //         }
-    //     }
-    //     initCategory();
-    // }, []);
+    useEffect(() => {
+        const initCategory = async () => {
+            const res = await getCategoryAPI();
+            if (res && res.data) {
+                const d = res.data.categories.map(item => {
+                    return item;
+                })
+                setListCategory(d);
+            }
+        }
+        initCategory();
+    }, []);
 
-    // useEffect(() => {
-    //     fetchBook();
-    // }, [current, pageSize, filter, sortQuery, searchTerm]);
+    useEffect(() => {
+        fetchBook();
+    }, [current, pageSize, filter, sortQuery]);
 
-    // const fetchBook = async () => {
-    //     setIsLoading(true)
-    //     let query = `current=${current}&pageSize=${pageSize}`;
-    //     if (filter) {
-    //         query += `&${filter}`;
-    //     }
-    //     if (sortQuery) {
-    //         query += `&${sortQuery}`;
-    //     }
+    const fetchBook = async () => {
+        setIsLoading(true)
+        let query = `current=${current}&pageSize=${pageSize}`;
+        if (filter) {
+            query += `&${filter}`;
+        }
+        if (sortQuery) {
+            query += `&${sortQuery}`;
+        }
 
-    //     if (searchTerm) {
-    //         query += `&mainText=/${searchTerm}/i`;
-    //     }
-
-    //     // const res = await getBooksAPI(query);
-    //     // if (res && res.data) {
-    //     //     setListBook(res.data.result);
-    //     //     setTotal(res.data.meta.total)
-    //     // }
-    //     setIsLoading(false)
-    // }
+        const res = await getBookAPI(query);
+        if (res && res.data) {
+            setListBook(res.data.result);
+            setTotal(res.data.meta.total)
+        }
+        setIsLoading(false)
+    }
 
     const handleOnchangePage = (pagination: { current: number, pageSize: number }) => {
         if (pagination && pagination.current !== current) {
@@ -152,17 +147,16 @@ const HomePage = () => {
                 <div className="homepage-container" style={{ maxWidth: 1440, margin: '0 auto', overflow: "hidden" }}>
                     <Row gutter={[20, 20]}>
                         <Col md={4} sm={0} xs={0}>
-                            <div style={{ padding: "20px", background: '#fff', borderRadius: 5 }}>
-                                <div style={{ display: 'flex', justifyContent: "space-between" }}>
-                                    <span> <FilterTwoTone />
-                                        <span style={{ fontWeight: 500 }}> Bộ lọc tìm kiếm</span>
-                                    </span>
-                                    <ReloadOutlined title="Reset" onClick={() => {
-                                        form.resetFields();
-                                        setFilter('');
-                                    }}
-                                    />
-                                </div>
+                            <div className="filter-container" style={{ padding: "20px", background: '#fff', borderRadius: 5 }}>                                <div style={{ display: 'flex', justifyContent: "space-between" }}>
+                                <span> <FilterTwoTone />
+                                    <span style={{ fontWeight: 500 }}> Bộ lọc tìm kiếm</span>
+                                </span>
+                                <ReloadOutlined title="Reset" onClick={() => {
+                                    form.resetFields();
+                                    setFilter('');
+                                }}
+                                />
+                            </div>
                                 <Divider />
                                 <Form
                                     onFinish={onFinish}
@@ -179,8 +173,8 @@ const HomePage = () => {
                                                 {listCategory?.map((item, index) => {
                                                     return (
                                                         <Col span={24} key={`index-${index}`} style={{ padding: '7px 0' }}>
-                                                            <Checkbox value={item.value} >
-                                                                {item.label}
+                                                            <Checkbox value={item.catID} >
+                                                                {item.catName}
                                                             </Checkbox>
                                                         </Col>
                                                     )
@@ -263,7 +257,8 @@ const HomePage = () => {
                                             defaultActiveKey="sort=-sold"
                                             items={items}
                                             onChange={(value) => { setSortQuery(value) }}
-                                            style={{ overflowX: "auto" }}
+                                            style={{ overflowX: "auto", fontSize: "16px" }}
+                                            className="custom-tabs"
                                         />
                                         <Col xs={24} md={0}>
                                             <div style={{ marginBottom: 20 }} >
@@ -274,36 +269,37 @@ const HomePage = () => {
                                             </div>
                                         </Col>
                                     </Row>
-                                    {/* <Row className='customize-row'>
+                                    {<Row className='customize-row'>
                                         {listBook?.map((item, index) => {
                                             return (
                                                 <div
-                                                    onClick={() => navigate(`/book/${item._id}`)}
+                                                    onClick={() => navigate(`/book/${item.bookID}`)}
                                                     className="column" key={`book-${index}`}>
                                                     <div className='wrapper'>
                                                         <div className='thumbnail'>
-                                                            <img src={`${import.meta.env.VITE_BACKEND_URL}/images/book/${item.thumbnail}`} alt="thumbnail book" />
+                                                            <img src={`${import.meta.env.VITE_BACKEND_URL}${item.image}`} alt="thumbnail book" />
                                                         </div>
-                                                        <div className='text' title={item.mainText}>{item.mainText}</div>
+                                                        <div className='text'>{item.bookTitle}</div>
                                                         <div className='price'>
-                                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item?.price ?? 0)}
+                                                            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item?.bookPrice ?? 0)}
                                                         </div>
                                                         <div className='rating'>
                                                             <Rate value={5} disabled style={{ color: '#ffce3d', fontSize: 10 }} />
-                                                            <span>Đã bán {item?.sold ?? 0}</span>
+                                                            <span>Đã bán 120</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             )
                                         })}
-                                    </Row> */}
+                                    </Row>}
                                     <div style={{ marginTop: 30 }}></div>
-                                    <Row style={{ display: "flex", justifyContent: "center" }}>
+                                    <Row style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
                                         <Pagination
                                             current={current}
                                             total={total}
                                             pageSize={pageSize}
                                             responsive
+                                            showSizeChanger
                                             onChange={(p, s) => handleOnchangePage({ current: p, pageSize: s })}
                                         />
                                     </Row>

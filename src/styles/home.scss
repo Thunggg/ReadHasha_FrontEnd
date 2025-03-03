@@ -1,28 +1,55 @@
 .homepage-container {
+    padding: 0 15px; // Thêm padding hai bên cho thoáng
     .customize-row {
         display: flex;
         flex-wrap: wrap;
-        gap: 20px 10px; //gap 10px, có 5 items trên 1 row => 4*10 = 40px cần được bớt ở width. 40/5items = 8px => calc trừ đi 8px
+        gap: 20px 10px;
+        justify-content: flex-start; // Căn trái sản phẩm cho gọn gàng
 
         .column {
             width: calc(20% - 8px);
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease; // Hiệu ứng mượt mà hơn
 
             &:hover {
-                box-shadow: 0 0.0625rem 20px 0 rgba(0, 0, 0, .05);
-                -webkit-transform: translateY(-0.0625rem);
-                transform: translateY(-0.0625rem);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                transform: translateY(-5px); // Nâng nhẹ khi hover
             }
 
             .wrapper {
                 cursor: pointer;
-                box-shadow: 0 0.0625rem 0.125rem 0 rgba(0, 0, 0, .1);
-                border-radius: 0.125rem;
-                padding: .3rem;
+                padding: 10px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+
+                .thumbnail {
+                    max-height: 180px; // Giảm nhẹ chiều cao thumbnail
+                    max-width: 100%;
+                    margin: 0 auto;
+                    overflow: hidden;
+
+                    img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover; // Đảm bảo ảnh không bị méo
+                        transition: transform 0.3s ease;
+                    }
+
+                    &:hover img {
+                        transform: scale(1.05); // Zoom nhẹ ảnh khi hover
+                    }
+                }
 
                 .text {
-                    padding: 0.5rem 0;
-                    font-size: .75rem;
-                    height: 50px;
+                    padding: 10px 0;
+                    font-size: 0.9rem; // Tăng nhẹ kích thước chữ
+                    height: 48px;
+                    font-weight: 500;
+                    color: #333;
                     display: -webkit-box;
                     -webkit-line-clamp: 2;
                     -webkit-box-orient: vertical;
@@ -30,43 +57,77 @@
                     text-overflow: ellipsis;
                 }
 
+                .price {
+                    font-size: 1rem;
+                    font-weight: 600;
+                    color: #e74c3c; // Màu đỏ nổi bật cho giá
+                }
+
                 .rating {
                     display: flex;
                     align-items: center;
-                    gap: 10px;
+                    gap: 8px;
+                    font-size: 0.8rem;
+                    color: #666;
                 }
-
             }
         }
 
-
-        .thumbnail {
-            max-height: 200px;
-            max-width: 200px;
-            margin: 0 auto;
-
-            img {
-                max-width: 100%;
-                max-height: 100%;
-                background-color: white;
-                object-fit: contain;
-            }
-        }
-
+        // Responsive
         @media screen and (max-width: 600px) {
             .column {
-                flex: unset;
                 width: calc(50% - 8px);
-                flex-wrap: wrap;
             }
         }
 
         @media screen and (max-width: 800px) and (min-width: 601px) {
             .column {
-                flex: unset;
-                width: calc(25% - 8px);
-                flex-wrap: wrap;
+                width: calc(33.33% - 8px); // 3 cột cho màn hình trung bình
+            }
+        }
+
+        @media screen and (max-width: 1024px) and (min-width: 801px) {
+            .column {
+                width: calc(25% - 8px); // 4 cột cho màn hình lớn hơn
             }
         }
     }
+}
+
+// Cải thiện bộ lọc
+.filter-container {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 20px;
+
+    .ant-form-item-label {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .ant-btn-primary {
+        background: #1890ff;
+        border: none;
+        border-radius: 5px;
+        transition: background 0.3s ease;
+
+        &:hover {
+            background: #40a9ff;
+        }
+    }
+
+    .ant-divider {
+        margin: 15px 0;
+    }
+}
+
+// Tabs
+.ant-tabs-tab {
+    font-weight: 500;
+    padding: 10px 20px !important;
+}
+
+.ant-tabs-ink-bar {
+    background: #1890ff !important;
 }
