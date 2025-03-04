@@ -1,5 +1,3 @@
-// import MobileFilter from '@/components/client/book/mobile.filter';
-// import { getBooksAPI, getCategoryAPI } from '@/services/api';
 import { getBookAPI, getCategoryAPI } from '@/services/api';
 import { FilterTwoTone, ReloadOutlined } from '@ant-design/icons';
 import {
@@ -7,9 +5,22 @@ import {
     Button, Rate, Tabs, Pagination, Spin
 } from 'antd';
 import type { FormProps } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useOutletContext } from 'react-router-dom';
 import 'styles/home.scss';
+
+// Custom hook để delay search
+function useDebounce<T>(value: T, delay?: number): T {
+    const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedValue(value), delay || 500);
+        return () => clearTimeout(timer);
+    }, [value, delay]);
+
+    return debouncedValue;
+}
+
 type FieldType = {
     range: {
         from: number;
@@ -18,53 +29,45 @@ type FieldType = {
     category: string[]
 };
 
-
 const HomePage = () => {
-    // const [searchTerm] = useOutletContext() as any;
+    const [searchTerm] = useOutletContext() as any;
+    const navigate = useNavigate();
+    const [form] = Form.useForm();
 
+    // State management
     const [listCategory, setListCategory] = useState<ICategory[]>([]);
-
     const [listBook, setListBook] = useState<IBook[]>([]);
     const [current, setCurrent] = useState<number>(1);
     const [pageSize, setPageSize] = useState<number>(10);
     const [total, setTotal] = useState<number>(0);
-
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [filter, setFilter] = useState<string>("");
     const [sortQuery, setSortQuery] = useState<string>("sort=-sold");
     const [showMobileFilter, setShowMobileFilter] = useState<boolean>(false);
 
-    const [form] = Form.useForm();
+    // Debounce search term
+    const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-    const navigate = useNavigate();
-
+    // Fetch categories on initial load
     useEffect(() => {
         const initCategory = async () => {
             const res = await getCategoryAPI();
             if (res && res.data) {
-                const d = res.data.categories.map(item => {
-                    return item;
-                })
+                const d = res.data.categories.map(item => item);
                 setListCategory(d);
             }
         }
         initCategory();
     }, []);
 
-    useEffect(() => {
-        fetchBook();
-    }, [current, pageSize, filter, sortQuery]);
-
-    const fetchBook = async () => {
+    // Memoized fetch book function
+    const fetchBook = useCallback(async () => {
         setIsLoading(true);
-
-        // Thêm setTimeout để giả lập delay 1 giây
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         try {
             let query = `current=${current}&pageSize=${pageSize}`;
             if (filter) query += `&${filter}`;
             if (sortQuery) query += `&${sortQuery}`;
+            if (debouncedSearchTerm) query += `&mainText=${encodeURIComponent(debouncedSearchTerm)}`;
 
             const res = await getBookAPI(query);
             if (res?.data) {
@@ -76,9 +79,57 @@ const HomePage = () => {
         } finally {
             setIsLoading(false);
         }
-    }
+    }, [current, pageSize, filter, sortQuery, debouncedSearchTerm]);
 
-    const handleOnchangePage = (pagination: { current: number, pageSize: number }) => {
+    // Trigger fetch when dependencies change
+    useEffect(() => {
+        fetchBook();
+    }, [fetchBook]);
+
+    // Memoized book rendering
+    const renderedBooks = useMemo(() => {
+        return listBook.map((item, index) => ({
+            ...item,
+            formattedPrice: new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND'
+            }).format(item?.bookPrice ?? 0),
+            renderComponent: (
+                <div
+                    onClick={() => navigate(`/book/${item.bookID}`)}
+                    className="column"
+                    key={`book-${index}`}
+                >
+                    <div className='wrapper'>
+                        <div className='thumbnail'>
+                            <img
+                                src={`${import.meta.env.VITE_BACKEND_URL}${item.image}`}
+                                alt="thumbnail book"
+                            />
+                        </div>
+                        <div className='text'>{item.bookTitle}</div>
+                        <div className='price'>
+                            {new Intl.NumberFormat('vi-VN', {
+                                style: 'currency',
+                                currency: 'VND'
+                            }).format(item?.bookPrice ?? 0)}
+                        </div>
+                        <div className='rating'>
+                            <Rate
+                                value={5}
+                                disabled
+                                style={{ color: '#ffce3d', fontSize: 10 }}
+                            />
+                            <span>Đã bán 120</span>
+                        </div>
+                    </div>
+                </div>
+            )
+        }));
+    }, [listBook, navigate]);
+
+    // Memoized page change handler
+    const handleOnchangePage = useCallback((pagination: { current: number, pageSize: number }) => {
         if (pagination && pagination.current !== current) {
             setCurrent(pagination.current)
         }
@@ -86,64 +137,40 @@ const HomePage = () => {
             setPageSize(pagination.pageSize)
             setCurrent(1);
         }
+    }, [current, pageSize]);
 
-    }
-
-
-    const handleChangeFilter = (changedValues: any, values: any) => {
-        //only fire if category changes
+    // Handle filter changes
+    const handleChangeFilter = useCallback((changedValues: any, values: any) => {
         if (changedValues.category) {
             const cate = values.category;
             if (cate && cate.length > 0) {
                 const f = cate.join(',');
                 setFilter(`categoryIds=${f}`)
             } else {
-                //reset data -> fetch all
                 setFilter('');
             }
         }
+    }, []);
 
-    }
-
-    const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
+    // Price filter submission
+    const onFinish: FormProps<FieldType>['onFinish'] = useCallback(async (values: any) => {
         if (values?.range?.from >= 0 && values?.range?.to >= 0) {
-            let f = `price>=${values?.range?.from}&price<=${values?.range?.to}`;
+            let f = `minPrice=${values?.range?.from}&maxPrice=${values?.range?.to}`;
             if (values?.category?.length) {
                 const cate = values?.category?.join(',');
-                f += `&category=${cate}`
+                f += `&categoryIds=${cate}`
             }
             setFilter(f);
         }
+    }, []);
 
-    }
-
-    const onChange = (key: string) => {
-        // console.log(key);
-    };
-
+    // Sort items
     const items = [
-        {
-            key: "sort=-sold",
-            label: `Phổ biến`,
-            children: <></>,
-        },
-        {
-            key: 'sort=-updatedAt',
-            label: `Hàng Mới`,
-            children: <></>,
-        },
-        {
-            key: 'sort=price',
-            label: `Giá Thấp Đến Cao`,
-            children: <></>,
-        },
-        {
-            key: 'sort=-price',
-            label: `Giá Cao Đến Thấp`,
-            children: <></>,
-        },
+        { key: "sort=-sold", label: `Phổ biến`, children: <></> },
+        { key: 'sort=-updatedAt', label: `Hàng Mới`, children: <></> },
+        { key: 'sort=price', label: `Giá Thấp Đến Cao`, children: <></> },
+        { key: 'sort=-price', label: `Giá Cao Đến Thấp`, children: <></> },
     ];
-
 
     return (
         <>
@@ -151,21 +178,25 @@ const HomePage = () => {
                 <div className="homepage-container" style={{ maxWidth: 1440, margin: '0 auto', overflow: "hidden" }}>
                     <Row gutter={[20, 20]}>
                         <Col md={4} sm={0} xs={0}>
-                            <div className="filter-container" style={{ padding: "20px", background: '#fff', borderRadius: 5 }}>                                <div style={{ display: 'flex', justifyContent: "space-between" }}>
-                                <span> <FilterTwoTone />
-                                    <span style={{ fontWeight: 500 }}> Bộ lọc tìm kiếm</span>
-                                </span>
-                                <ReloadOutlined title="Reset" onClick={() => {
-                                    form.resetFields();
-                                    setFilter('');
-                                }}
-                                />
-                            </div>
+                            <div className="filter-container" style={{ padding: "20px", background: '#fff', borderRadius: 5 }}>
+                                <div style={{ display: 'flex', justifyContent: "space-between" }}>
+                                    <span>
+                                        <FilterTwoTone />
+                                        <span style={{ fontWeight: 500 }}> Bộ lọc tìm kiếm</span>
+                                    </span>
+                                    <ReloadOutlined
+                                        title="Reset"
+                                        onClick={() => {
+                                            form.resetFields();
+                                            setFilter('');
+                                        }}
+                                    />
+                                </div>
                                 <Divider />
                                 <Form
                                     onFinish={onFinish}
                                     form={form}
-                                    onValuesChange={(changedValues, values) => handleChangeFilter(changedValues, values)}
+                                    onValuesChange={handleChangeFilter}
                                 >
                                     <Form.Item
                                         name="category"
@@ -174,15 +205,13 @@ const HomePage = () => {
                                     >
                                         <Checkbox.Group>
                                             <Row>
-                                                {listCategory?.map((item, index) => {
-                                                    return (
-                                                        <Col span={24} key={`index-${index}`} style={{ padding: '7px 0' }}>
-                                                            <Checkbox value={item.catID} >
-                                                                {item.catName}
-                                                            </Checkbox>
-                                                        </Col>
-                                                    )
-                                                })}
+                                                {listCategory?.map((item, index) => (
+                                                    <Col span={24} key={`index-${index}`} style={{ padding: '7px 0' }}>
+                                                        <Checkbox value={item.catID}>
+                                                            {item.catName}
+                                                        </Checkbox>
+                                                    </Col>
+                                                ))}
                                             </Row>
                                         </Checkbox.Group>
                                     </Form.Item>
@@ -204,7 +233,7 @@ const HomePage = () => {
                                                 </Form.Item>
                                             </Col>
                                             <Col xl={2} md={0}>
-                                                <div > - </div>
+                                                <div> - </div>
                                             </Col>
                                             <Col xl={11} md={24}>
                                                 <Form.Item name={["range", 'to']}>
@@ -219,44 +248,23 @@ const HomePage = () => {
                                             </Col>
                                         </Row>
                                         <div>
-                                            <Button onClick={() => form.submit()}
-                                                style={{ width: "100%" }} type='primary'>Áp dụng</Button>
-                                        </div>
-                                    </Form.Item>
-                                    <Divider />
-                                    <Form.Item
-                                        label="Đánh giá"
-                                        labelCol={{ span: 24 }}
-                                    >
-                                        <div>
-                                            <Rate value={5} disabled style={{ color: '#ffce3d', fontSize: 15 }} />
-                                            <span className="ant-rate-text"></span>
-                                        </div>
-                                        <div>
-                                            <Rate value={4} disabled style={{ color: '#ffce3d', fontSize: 15 }} />
-                                            <span className="ant-rate-text">trở lên</span>
-                                        </div>
-                                        <div>
-                                            <Rate value={3} disabled style={{ color: '#ffce3d', fontSize: 15 }} />
-                                            <span className="ant-rate-text">trở lên</span>
-                                        </div>
-                                        <div>
-                                            <Rate value={2} disabled style={{ color: '#ffce3d', fontSize: 15 }} />
-                                            <span className="ant-rate-text">trở lên</span>
-                                        </div>
-                                        <div>
-                                            <Rate value={1} disabled style={{ color: '#ffce3d', fontSize: 15 }} />
-                                            <span className="ant-rate-text">trở lên</span>
+                                            <Button
+                                                onClick={() => form.submit()}
+                                                style={{ width: "100%" }}
+                                                type='primary'
+                                            >
+                                                Áp dụng
+                                            </Button>
                                         </div>
                                     </Form.Item>
                                 </Form>
                             </div>
                         </Col>
 
-                        <Col md={20} xs={24} >
+                        <Col md={20} xs={24}>
                             <Spin spinning={isLoading} size='large' tip="Loading...">
                                 <div style={{ padding: "20px", background: '#fff', borderRadius: 5 }}>
-                                    <Row >
+                                    <Row>
                                         <Tabs
                                             defaultActiveKey="sort=-sold"
                                             items={items}
@@ -265,7 +273,7 @@ const HomePage = () => {
                                             className="custom-tabs"
                                         />
                                         <Col xs={24} md={0}>
-                                            <div style={{ marginBottom: 20 }} >
+                                            <div style={{ marginBottom: 20 }}>
                                                 <span onClick={() => setShowMobileFilter(true)}>
                                                     <FilterTwoTone />
                                                     <span style={{ fontWeight: 500 }}> Lọc</span>
@@ -274,38 +282,8 @@ const HomePage = () => {
                                         </Col>
                                     </Row>
                                     <Row className='customize-row'>
-                                        {listBook?.length > 0 ? (
-                                            listBook.map((item, index) => (
-                                                <div
-                                                    onClick={() => navigate(`/book/${item.bookID}`)}
-                                                    className="column"
-                                                    key={`book-${index}`}
-                                                >
-                                                    <div className='wrapper'>
-                                                        <div className='thumbnail'>
-                                                            <img
-                                                                src={`${import.meta.env.VITE_BACKEND_URL}${item.image}`}
-                                                                alt="thumbnail book"
-                                                            />
-                                                        </div>
-                                                        <div className='text'>{item.bookTitle}</div>
-                                                        <div className='price'>
-                                                            {new Intl.NumberFormat('vi-VN', {
-                                                                style: 'currency',
-                                                                currency: 'VND'
-                                                            }).format(item?.bookPrice ?? 0)}
-                                                        </div>
-                                                        <div className='rating'>
-                                                            <Rate
-                                                                value={5}
-                                                                disabled
-                                                                style={{ color: '#ffce3d', fontSize: 10 }}
-                                                            />
-                                                            <span>Đã bán 120</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))
+                                        {renderedBooks.length > 0 ? (
+                                            renderedBooks.map(book => book.renderComponent)
                                         ) : (
                                             !isLoading && (
                                                 <div style={{
@@ -365,13 +343,6 @@ const HomePage = () => {
                     </Row>
                 </div>
             </div>
-            {/* <MobileFilter
-                isOpen={showMobileFilter}
-                setIsOpen={setShowMobileFilter}
-                handleChangeFilter={handleChangeFilter}
-                listCategory={listCategory}
-                onFinish={onFinish}
-            /> */}
         </>
     )
 }

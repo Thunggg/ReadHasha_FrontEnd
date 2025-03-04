@@ -16,7 +16,7 @@ interface IProps {
     setSearchTerm: (v: string) => void;
 }
 
-const AppHeader = () => {
+const AppHeader = (props: IProps) => {
     const [openDrawer, setOpenDrawer] = useState(false);
     // const [openManageAccount, setOpenManageAccount] = useState<boolean>(false);
 
@@ -112,8 +112,8 @@ const AppHeader = () => {
                             <input
                                 className="input-search" type={'text'}
                                 placeholder="Bạn tìm gì hôm nay"
-                            // value={props.searchTerm}
-                            // onChange={(e) => props.setSearchTerm(e.target.value)}
+                                value={props.searchTerm}
+                                onChange={(e) => props.setSearchTerm(e.target.value)}
                             />
                         </div>
 
