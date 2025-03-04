@@ -140,3 +140,8 @@ export const getBooksByCategoryAPI = (categoryIds: string) => {
     const urlBackend = `/api/v1/categories/books-by-category?categoryIds=${categoryIds}`;
     return axios.get<IBackendRes<IBook[]>>(urlBackend);
 };
+
+export const getBooksByIdAPI = (BookID: string) => {
+    const urlBackend = `/api/v1/books/${BookID}`;
+    return axios.get<IBackendRes<IBook>>(urlBackend);
+};

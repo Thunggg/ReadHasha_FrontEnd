@@ -33,6 +33,7 @@ import LayoutAdmin from './Layout/admin/layout.admin';
 import enUS from 'antd/locale/en_US';
 import viVN from 'antd/locale/vi_VN';
 import HomePage from './pages/client/home';
+import BookPage from './pages/client/book';
 
 const router = createBrowserRouter([
   {
@@ -42,6 +43,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "/book/:id",
+        element: <BookPage />,
       },
       {
         path: "about",
