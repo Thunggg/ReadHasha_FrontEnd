@@ -67,7 +67,7 @@ const HomePage = () => {
             let query = `current=${current}&pageSize=${pageSize}`;
             if (filter) query += `&${filter}`;
             if (sortQuery) query += `&${sortQuery}`;
-            if (debouncedSearchTerm) query += `&mainText=${encodeURIComponent(debouncedSearchTerm)}`;
+            // if (debouncedSearchTerm) query += `&mainText=${encodeURIComponent(debouncedSearchTerm)}`;
 
             const res = await getBookAPI(query);
             if (res?.data) {
@@ -79,7 +79,7 @@ const HomePage = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [current, pageSize, filter, sortQuery, debouncedSearchTerm]);
+    }, [current, pageSize, filter, sortQuery]);
 
     // Trigger fetch when dependencies change
     useEffect(() => {
