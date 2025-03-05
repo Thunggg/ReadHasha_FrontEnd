@@ -1,3 +1,4 @@
+import BookDetail from "@/components/client/book.detail";
 import BookLoader from "@/components/client/book.loader";
 import { getBooksByIdAPI } from "@/services/api";
 import { App } from "antd";
@@ -30,14 +31,13 @@ const BookPage = () => {
     }, [id])
     return (
         <div>
-            <BookLoader />
-            {/* {isLoadingBook ?
+            {isLoadingBook ?
                 <BookLoader />
                 :
                 <BookDetail
-                    currentBook={currentBook}
+                // currentBook={currentBook}
                 />
-            } */}
+            }
         </div>
     )
 }
