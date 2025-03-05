@@ -45,9 +45,6 @@ const HomePage = () => {
     const [sortQuery, setSortQuery] = useState<string>("sort=-sold");
     const [showMobileFilter, setShowMobileFilter] = useState<boolean>(false);
 
-    // Debounce search term
-    const debouncedSearchTerm = useDebounce(searchTerm, 500);
-
     // Fetch categories on initial load
     useEffect(() => {
         const initCategory = async () => {
@@ -67,8 +64,7 @@ const HomePage = () => {
             let query = `current=${current}&pageSize=${pageSize}`;
             if (filter) query += `&${filter}`;
             if (sortQuery) query += `&${sortQuery}`;
-            // if (debouncedSearchTerm) query += `&mainText=${encodeURIComponent(debouncedSearchTerm)}`;
-
+            console.log(sortQuery);
             const res = await getBookAPI(query);
             if (res?.data) {
                 setListBook(res.data.result);
@@ -120,7 +116,7 @@ const HomePage = () => {
                                 disabled
                                 style={{ color: '#ffce3d', fontSize: 10 }}
                             />
-                            <span>Đã bán 120</span>
+                            <span>Đã bán {item.totalSold}</span>
                         </div>
                     </div>
                 </div>
@@ -167,9 +163,9 @@ const HomePage = () => {
     // Sort items
     const items = [
         { key: "sort=-sold", label: `Phổ biến`, children: <></> },
-        { key: 'sort=-updatedAt', label: `Hàng Mới`, children: <></> },
-        { key: 'sort=price', label: `Giá Thấp Đến Cao`, children: <></> },
-        { key: 'sort=-price', label: `Giá Cao Đến Thấp`, children: <></> },
+        { key: 'sort=-publicationYear', label: `Hàng Mới`, children: <></> },
+        { key: 'sort=bookPrice', label: `Giá Thấp Đến Cao`, children: <></> },
+        { key: 'sort=-bookPrice', label: `Giá Cao Đến Thấp`, children: <></> },
     ];
 
     return (

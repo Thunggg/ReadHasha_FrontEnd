@@ -115,6 +115,7 @@ declare global {
         bookPrice: number,
         bookQuantity: number,
         bookStatus: number,
+        totalSold?: number,
         bookCategories: IBookCategory[];
     }
 }
