@@ -1,5 +1,5 @@
-import BookDetail from "@/components/client/book.detail";
-import BookLoader from "@/components/client/book.loader";
+import BookDetail from "@/components/client/book/book.detail";
+import BookLoader from "@/components/client/book/book.loader";
 import { getBooksByIdAPI } from "@/services/api";
 import { App } from "antd";
 import { useEffect, useState } from "react";

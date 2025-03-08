@@ -192,7 +192,6 @@ const AppHeader = (props: IProps) => {
                                     className="popover-carts"
                                     placement="topRight"
                                     rootClassName="popover-carts"
-                                    title={"Sản phẩm mới thêm"}
                                     content={contentPopover}
                                     arrow={true}>
                                     <Badge

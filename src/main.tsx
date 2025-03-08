@@ -30,10 +30,10 @@ import LayoutAdmin from './Layout/admin/layout.admin';
 // import ManageOrderPage from './pages/admin/manage.order';
 // import ManageUserPage from './pages/admin/manage.user';
 // import { ConfigProvider } from "antd";
-import enUS from 'antd/locale/en_US';
 import viVN from 'antd/locale/vi_VN';
 import HomePage from './pages/client/home';
 import BookPage from './pages/client/book';
+import OrderPage from './pages/client/order';
 
 const router = createBrowserRouter([
   {
@@ -47,6 +47,14 @@ const router = createBrowserRouter([
       {
         path: "/book/:id",
         element: <BookPage />,
+      },
+      {
+        path: "/order",
+        element: (
+          <ProtectedRoute>
+            <OrderPage />
+          </ProtectedRoute>
+        )
       },
       {
         path: "about",

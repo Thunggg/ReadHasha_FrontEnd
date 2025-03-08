@@ -15,7 +15,7 @@ import {
 } from "antd";
 import { HeartOutlined, MinusOutlined, PlusOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 import { getBooksByIdAPI } from "@/services/api";
-import { useCurrentApp } from "../context/app.context";
+import { useCurrentApp } from "@/components/context/app.context";
 // Remove or comment out the problematic import until we create the file
 // import "@/styles/bookDetail.scss";
 
