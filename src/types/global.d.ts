@@ -118,4 +118,10 @@ declare global {
         totalSold?: number,
         bookCategories: IBookCategory[];
     }
+
+    interface ICart {
+        id: number;
+        quantity: number;
+        detail: IBook;
+    }
 }

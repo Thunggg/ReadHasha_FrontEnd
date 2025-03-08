@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { FaReact } from 'react-icons/fa';
 import { VscSearchFuzzy } from 'react-icons/vsc';
-import { Divider, Drawer, AutoComplete, Input } from 'antd';
+import { Divider, Drawer, AutoComplete, Input, Popover, Badge } from 'antd';
 import { Dropdown, Space } from 'antd';
 import { useNavigate } from 'react-router';
 import './app.header.scss';
 import { Link } from 'react-router-dom';
 import { useCurrentApp } from 'components/context/app.context';
 import { logoutAPI, getBookAPI } from '@/services/api';
+import { FiShoppingCart } from 'react-icons/fi';
 
 interface IProps {
     searchTerm: string;
@@ -18,7 +19,7 @@ const AppHeader = (props: IProps) => {
     const [openDrawer, setOpenDrawer] = useState(false);
     // Lưu gợi ý tìm kiếm dưới dạng mảng IBook
     const [suggestions, setSuggestions] = useState<IBook[]>([]);
-    const { isAuthenticated, user, setUser, setIsAuthenticated } = useCurrentApp();
+    const { isAuthenticated, user, setUser, setIsAuthenticated, carts } = useCurrentApp();
     const navigate = useNavigate();
 
     // Hàm fetch gợi ý tìm kiếm (không giới hạn bản ghi)
@@ -127,6 +128,24 @@ const AppHeader = (props: IProps) => {
 
                     <nav className="page-header__bottom">
                         <ul className="navigation">
+                            <li className="navigation__item">
+
+                                <Popover
+                                    className="popover-carts"
+                                    placement="topRight"
+                                    rootClassName="popover-carts"
+                                    title={"Sản phẩm mới thêm"}
+                                    // content={contentPopover}
+                                    arrow={true}>
+                                    <Badge
+                                        count={carts?.length ?? 0}
+                                        size={"small"}
+                                        showZero
+                                    >
+                                        <FiShoppingCart className='icon-cart' />
+                                    </Badge>
+                                </Popover>
+                            </li>
                             <li className="navigation__item">
                                 {!isAuthenticated ? (
                                     <span onClick={() => navigate('/login')}>Đăng nhập</span>
