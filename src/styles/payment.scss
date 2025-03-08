@@ -1,0 +1,208 @@
+// payment.scss
+
+@mixin text-ellipsis($lines: 1) {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.payment-container {
+    padding: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+  
+    .back-button {
+      margin-bottom: 24px;
+      padding: 0;
+      color: #666;
+      
+      &:hover {
+        color: #ff4d4f;
+      }
+    }
+  
+    .section-title {
+      color: #333;
+      margin-bottom: 20px;
+      font-weight: 600;
+      border-left: 4px solid #ff4d4f;
+      padding-left: 12px;
+    }
+  
+    .product-list {
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  
+      .order-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid #f5f5f5;
+        transition: background 0.2s;
+  
+        &:last-child {
+          border-bottom: none;
+        }
+  
+        &:hover {
+          background: #fafafa;
+        }
+  
+        .item-content {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          flex: 1;
+  
+          .product-image {
+            width: 80px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+          }
+  
+          .item-info {
+            flex: 1;
+            
+            .product-name {
+              font-weight: 500;
+              margin-bottom: 8px;
+              @include text-ellipsis(2);
+            }
+  
+            .product-quantity {
+              color: #666;
+              font-size: 14px;
+            }
+  
+            .product-price {
+              color: #ff4d4f;
+              font-weight: 500;
+              margin-top: 8px;
+            }
+          }
+        }
+  
+        .delete-icon {
+          color: #999;
+          font-size: 18px;
+          padding: 8px;
+          transition: all 0.2s;
+          
+          &:hover {
+            color: #ff4d4f;
+            transform: scale(1.1);
+          }
+        }
+      }
+    }
+  
+    .payment-form {
+      .payment-summary {
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  
+        .form-item {
+          margin-bottom: 20px;
+  
+          .ant-form-item-label label {
+            font-weight: 500;
+            color: #333;
+          }
+        }
+  
+        .payment-methods {
+          width: 100%;
+          
+          .payment-method {
+            display: block;
+            margin: 12px 0;
+            padding: 16px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            transition: all 0.2s;
+  
+            &:hover {
+              border-color: #ff4d4f;
+              background: #fff5f5;
+            }
+  
+            .method-title {
+              display: block;
+              font-weight: 500;
+              color: #333;
+            }
+  
+            .method-description {
+              font-size: 13px;
+              color: #666;
+            }
+          }
+        }
+  
+        .price-summary {
+          .price-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
+            color: #666;
+  
+            &.total {
+              font-size: 16px;
+              margin-top: 20px;
+              
+              .total-price {
+                color: #ff4d4f;
+                font-weight: 600;
+                font-size: 18px;
+              }
+            }
+          }
+        }
+  
+        .submit-button {
+          height: 48px;
+          font-size: 16px;
+          font-weight: 500;
+          margin-top: 24px;
+          background: #ff4d4f;
+          border-color: #ff4d4f;
+          transition: all 0.2s;
+  
+          &:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+          }
+        }
+      }
+    }
+  
+    @media (max-width: 768px) {
+      padding: 16px;
+  
+      .product-list {
+        padding: 16px;
+        
+        .order-item {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 16px;
+  
+          .item-content {
+            width: 100%;
+          }
+        }
+      }
+  
+      .payment-summary {
+        padding: 16px !important;
+      }
+    }
+  }

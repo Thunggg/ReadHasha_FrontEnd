@@ -5,7 +5,12 @@ import { useEffect, useState } from 'react';
 import { useCurrentApp } from '@/components/context/app.context';
 import '@/styles/order.scss';
 
-const OrderDetail = () => {
+interface IProps {
+    setCurrentStep: (v: number) => void;
+}
+
+const OrderDetail = (props: IProps) => {
+    const { setCurrentStep } = props;
     const { carts, setCarts } = useCurrentApp();
     const [totalPrice, setTotalPrice] = useState(0);
     const { message } = App.useApp();
@@ -29,6 +34,14 @@ const OrderDetail = () => {
         localStorage.setItem("carts", JSON.stringify(updatedCarts));
         setCarts(updatedCarts);
     };
+
+    const handleNextStep = () => {
+        if (!carts.length) {
+            message.error("Không tồn tại sản phẩm trong giỏ hàng.")
+            return;
+        }
+        setCurrentStep(1)
+    }
 
     return (
         <div className="order-page-container">
@@ -114,7 +127,7 @@ const OrderDetail = () => {
                                     size="large"
                                     block
                                     className="checkout-btn"
-                                // onClick={handleNextStep}
+                                    onClick={handleNextStep}
                                 >
                                     Thanh toán ({carts.length})
                                 </Button>
