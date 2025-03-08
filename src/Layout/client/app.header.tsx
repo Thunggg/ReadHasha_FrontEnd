@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { FaReact } from 'react-icons/fa';
 import { VscSearchFuzzy } from 'react-icons/vsc';
-import { Divider, Drawer, AutoComplete, Input, Popover, Badge } from 'antd';
+import { Divider, Drawer, AutoComplete, Input, Popover, Badge, Empty, Button } from 'antd';
 import { Dropdown, Space } from 'antd';
 import { useNavigate } from 'react-router';
 import './app.header.scss';
@@ -79,6 +79,64 @@ const AppHeader = (props: IProps) => {
         },
     ];
 
+    const contentPopover = () => {
+        return (
+            <div className='cart-popover'>
+                <div className='cart-header'>
+                    <h3>Giỏ hàng của bạn ({carts.length})</h3>
+                </div>
+
+                <div className='cart-items'>
+                    {carts.length > 0 ? (
+                        carts.map((book, index) => (
+                            <div className='cart-item' key={`book-${index}`}>
+                                <img
+                                    src={`${import.meta.env.VITE_BACKEND_URL}${book.detail?.image}`}
+                                    // alt={book.detail?.bookTitle}
+                                    className='book-image'
+                                />
+                                <div className='item-info'>
+                                    <h4 className='book-title'>{book.detail?.bookTitle}</h4>
+                                    <div className='item-details'>
+                                        <span className='quantity'>Số lượng: {book.quantity}</span>
+                                        <span className='price'>
+                                            {new Intl.NumberFormat('vi-VN', {
+                                                style: 'currency',
+                                                currency: 'VND'
+                                            }).format((book.detail?.bookPrice ?? 0) * book.quantity)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <Empty
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            description={<span className='empty-text'>Giỏ hàng trống</span>}
+                        />
+                    )}
+                </div>
+
+                {carts.length > 0 && (
+                    <div className='cart-footer'>
+                        <Button
+                            type="primary"
+                            block
+                            onClick={() => {
+                                navigate('/order');
+                                document.body.click(); // Đóng popover
+                            }}
+                            className='view-cart-btn'
+                        >
+                            Xem chi tiết giỏ hàng
+                        </Button>
+                    </div>
+                )}
+            </div>
+        )
+    }
+
+
     return (
         <>
             <div className='header-container'>
@@ -135,7 +193,7 @@ const AppHeader = (props: IProps) => {
                                     placement="topRight"
                                     rootClassName="popover-carts"
                                     title={"Sản phẩm mới thêm"}
-                                    // content={contentPopover}
+                                    content={contentPopover}
                                     arrow={true}>
                                     <Badge
                                         count={carts?.length ?? 0}

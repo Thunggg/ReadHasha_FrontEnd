@@ -9,7 +9,7 @@ interface IAppContext {
     user: IUser | null,
     isAppLoading: boolean,
     setIsAppLoading: (v: boolean) => void
-    carts: ICart[] | null,
+    carts: ICart[],
     setCarts: (v: ICart[]) => void
 }
 
