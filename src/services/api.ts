@@ -151,3 +151,8 @@ export const CreateOrderAPI = (orderData: IOrderRequest) => {
     const urlBackend = `/api/v1/orders/`;
     return axios.post<IBackendRes<{ orderId: number }>>(urlBackend, orderData);
 };
+
+export const getHistoryAPI = (username: string) => {
+    const urlBackend = `/api/v1/orders/history?username=${username}`;
+    return axios.get<IBackendRes<IHistory[]>>(urlBackend);
+};

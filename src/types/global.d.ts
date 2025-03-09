@@ -135,4 +135,27 @@ declare global {
         bookId: number;
         quantity: number;
     }
+
+    interface IHistoryDetail {
+        odid: number;
+        quantity: number;
+        totalPrice: number;
+        bookID: {
+            bookID: number;
+            bookTitle: string;
+            author: string;
+            bookPrice: number;
+            // Các trường khác nếu cần
+        };
+    }
+
+    interface IHistory {
+        orderID: number;
+        orderDate: string; // hoặc Date nếu backend trả về Date object
+        orderStatus: number;
+        orderAddress: string;
+        customerName: string;
+        orderDetailList: IHistoryDetail[];
+    }
+
 }

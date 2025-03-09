@@ -34,6 +34,7 @@ import viVN from 'antd/locale/vi_VN';
 import HomePage from './pages/client/home';
 import BookPage from './pages/client/book';
 import OrderPage from './pages/client/order';
+import HistoryPage from './pages/client/history';
 
 const router = createBrowserRouter([
   {
@@ -55,6 +56,14 @@ const router = createBrowserRouter([
             <OrderPage />
           </ProtectedRoute>
         )
+      },
+      {
+        path: "/history",
+        element: (
+          <ProtectedRoute>
+            <HistoryPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "about",
