@@ -145,3 +145,9 @@ export const getBooksByIdAPI = (BookID: string) => {
     const urlBackend = `/api/v1/books/${BookID}`;
     return axios.get<IBackendRes<IBook>>(urlBackend);
 };
+
+// ****************************************** Order ******************************************
+export const CreateOrderAPI = (orderData: IOrderRequest) => {
+    const urlBackend = `/api/v1/orders/`;
+    return axios.post<IBackendRes<{ orderId: number }>>(urlBackend, orderData);
+};

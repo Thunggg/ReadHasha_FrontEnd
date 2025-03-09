@@ -1,10 +1,11 @@
-import { App, Button, Col, Divider, Form, Radio, Row, Space, Typography } from 'antd';
+import { App, Button, Col, Divider, Form, message, notification, Radio, Row, Space, Typography } from 'antd';
 import { DeleteOutlined, DeleteTwoTone, LeftOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
 import { Input } from 'antd';
 import { useCurrentApp } from '@/components/context/app.context';
 import type { FormProps } from 'antd';
 import '@/styles/payment.scss';
+import { CreateOrderAPI } from '@/services/api';
 // import { createOrderAPI, getVNPayUrlAPI } from '@/services/api';
 // import { isMobile } from 'react-device-detect';
 // import { v4 as uuidv4 } from 'uuid';
@@ -65,63 +66,63 @@ const Payment = (props: IProps) => {
         }
     }
 
-    // const handlePlaceOrder: FormProps<FieldType>['onFinish'] = async (values) => {
-    //     const { address, fullName, method, phone } = values;
+    const handlePlaceOrder: FormProps<FieldType>['onFinish'] = async (values) => {
+        const { address, phone, method } = values;
 
-    //     const detail = carts.map(item => ({
-    //         id: item.id,
-    //         quantity: item.quantity,
-    //         bookName: item.detail.bookTitle
-    //     }))
+        // Kiểm tra xác thực user
+        if (!user) {
+            notification.error({
+                message: "Lỗi xác thực",
+                description: "Vui lòng đăng nhập để tiếp tục",
+            });
+            return;
+        }
 
-    //     setIsSubmit(true);
-    //     let res = null;
-    //     const paymentRef = uuidv4();
+        // Kiểm tra giỏ hàng có sản phẩm hay không
+        if (!carts?.length) {
+            notification.warning({
+                message: "Giỏ hàng trống",
+                description: "Vui lòng thêm sản phẩm vào giỏ hàng",
+            });
+            return;
+        }
 
-    //     if (method === "COD") {
-    //         res = await createOrderAPI(
-    //             fullName, address, phone, totalPrice, method, detail
-    //         );
-    //     } else {
-    //         res = await createOrderAPI(
-    //             fullName, address, phone, totalPrice, method, detail,
-    //             paymentRef
-    //         );
-    //     }
+        // Xây dựng payload đơn hàng, sử dụng id và quantity từ cart item (đã lưu trong localStorage)
+        const orderPayload: IOrderRequest = {
+            username: user.username,
+            address,
+            details: carts.map(item => ({
+                bookId: item.id,       // Lấy id của sách (đã lưu trong localStorage)
+                quantity: item.quantity // Lấy số lượng từ cart item
+            }))
+        };
 
+        setIsSubmit(true);
+        try {
+            const res = await CreateOrderAPI(orderPayload);
 
-    //     if (res?.data) {
-    //         localStorage.removeItem("carts");
-    //         setCarts([]);
-    //         if (method === "COD") {
-    //             message.success('Mua hàng thành công!');
-    //             setCurrentStep(2);
-    //         } else {
-    //             //redirect to vnpay
-    //             const r = await getVNPayUrlAPI(totalPrice, "vn", paymentRef);
-    //             if (r.data) {
-    //                 window.location.href = r.data.url;
-    //             } else {
-    //                 notification.error({
-    //                     message: "Có lỗi xảy ra",
-    //                     description:
-    //                         r.message && Array.isArray(r.message) ? r.message[0] : r.message,
-    //                     duration: 5
-    //                 })
-    //             }
-    //         }
-
-    //     } else {
-    //         notification.error({
-    //             message: "Có lỗi xảy ra",
-    //             description:
-    //                 res.message && Array.isArray(res.message) ? res.message[0] : res.message,
-    //             duration: 5
-    //         })
-    //     }
-
-    //     setIsSubmit(false);
-    // }
+            if (res && res.statusCode === 200) {
+                message.success('Đặt hàng thành công!');
+                localStorage.removeItem("carts");
+                setCarts([]);
+                setCurrentStep(2);
+            } else {
+                notification.error({
+                    message: "Lỗi đặt hàng",
+                    description: res.message || "Có lỗi xảy ra khi xử lý đơn hàng",
+                    duration: 5
+                });
+            }
+        } catch (error: any) {
+            notification.error({
+                message: "Lỗi hệ thống",
+                description: error.response?.data?.message || "Lỗi kết nối đến máy chủ",
+                duration: 5
+            });
+        } finally {
+            setIsSubmit(false);
+        }
+    };
 
     return (
         <div className="payment-container">
@@ -169,7 +170,7 @@ const Payment = (props: IProps) => {
                     <Form
                         form={form}
                         name="payment-form"
-                        // onFinish={handlePlaceOrder}
+                        onFinish={handlePlaceOrder}
                         autoComplete="off"
                         layout="vertical"
                         className="payment-form"

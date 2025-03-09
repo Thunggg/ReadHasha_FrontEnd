@@ -124,4 +124,15 @@ declare global {
         quantity: number;
         detail: IBook;
     }
+
+    interface IOrderRequest {
+        username: string;
+        address: string;
+        details: IOrderDetailRequest[];
+    }
+
+    interface IOrderDetailRequest {
+        bookId: number;
+        quantity: number;
+    }
 }
