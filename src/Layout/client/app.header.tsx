@@ -9,6 +9,7 @@ import { Link } from 'react-router-dom';
 import { useCurrentApp } from 'components/context/app.context';
 import { logoutAPI, getBookAPI } from '@/services/api';
 import { FiShoppingCart } from 'react-icons/fi';
+import ManageAccount from '@/components/client/account';
 
 interface IProps {
     searchTerm: string;
@@ -20,6 +21,8 @@ const AppHeader = (props: IProps) => {
     // Lưu gợi ý tìm kiếm dưới dạng mảng IBook
     const [suggestions, setSuggestions] = useState<IBook[]>([]);
     const { isAuthenticated, user, setUser, setIsAuthenticated, carts } = useCurrentApp();
+    const [openManageAccount, setOpenManageAccount] = useState<boolean>(false);
+
     const navigate = useNavigate();
 
     // Hàm fetch gợi ý tìm kiếm (không giới hạn bản ghi)
@@ -66,7 +69,10 @@ const AppHeader = (props: IProps) => {
             key: 'admin',
         }] : []),
         {
-            label: <Link to="/profile">Quản lý tài khoản</Link>,
+            label: <label
+                style={{ cursor: 'pointer' }}
+                onClick={() => setOpenManageAccount(true)}
+            >Quản lý tài khoản</label>,
             key: 'account',
         },
         {
@@ -233,6 +239,11 @@ const AppHeader = (props: IProps) => {
                     <div onClick={handleLogout}>Đăng xuất</div>
                 </div>
             </Drawer>
+
+            <ManageAccount
+                isModalOpen={openManageAccount}
+                setIsModalOpen={setOpenManageAccount}
+            />
         </>
     );
 };
