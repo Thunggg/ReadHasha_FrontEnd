@@ -103,6 +103,9 @@ const LoginPage = () => {
                         <span>Chưa có tài khoản? </span>
                         <Link to="/register">Đăng ký</Link>
                     </div>
+                    <div className="forgot-password-link" style={{ textAlign: "center", marginTop: 10 }}>
+                        <Link to="/forgot-password">Quên mật khẩu?</Link>
+                    </div>
                 </div>
             </div>
 

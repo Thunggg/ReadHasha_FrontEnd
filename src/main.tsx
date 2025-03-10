@@ -36,6 +36,9 @@ import BookPage from './pages/client/book';
 import OrderPage from './pages/client/order';
 import HistoryPage from './pages/client/history';
 import ManageCategoryPage from './pages/admin/manage.category';
+import EmailVerificationPage from './pages/client/auth/forgotPassword/forgotPassword';
+import VerifyEmailForgotPassword from './pages/client/auth/forgotPassword/verifyEmailForForgotPassword';
+import ResetPassword from './pages/client/auth/forgotPassword/ResetPassword';
 
 const router = createBrowserRouter([
   {
@@ -144,7 +147,24 @@ const router = createBrowserRouter([
       }
     ]
   },
-
+  {
+    path: "/forgot-password",
+    element: <RegisterLayout />,
+    children: [
+      {
+        index: true,
+        element: <EmailVerificationPage />
+      },
+      {
+        path: "verifyEmail",
+        element: <VerifyEmailForgotPassword />
+      },
+      {
+        path: "reset-password",
+        element: <ResetPassword />
+      }
+    ]
+  },
 ]);
 
 createRoot(document.getElementById('root')!).render(

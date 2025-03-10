@@ -90,6 +90,42 @@ export const updatePasswordAPI = async (data: {
     });
 };
 
+export const checkEmailExists = (email: string) => {
+    const urlBackend = `/api/v1/accounts/check-email?email=${email}`;
+    return axios.get<IBackendRes<IUser>>(urlBackend);
+}
+
+export const sendVerificationOTP = (email: string) => {
+    const urlBackend = `/api/v1/accounts/email/send-otp`;
+    return axios.post<IBackendRes<IUser>>(urlBackend, { email },
+        {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        }
+    );
+
+}
+
+export const resetPasswordAPI = (newPassword: string) => {
+    const urlBackend = `/api/v1/accounts/reset-password`;
+
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        throw new Error("Không tìm thấy token!");
+    }
+
+    return axios.post<IBackendRes<IUser>>(urlBackend, { newPassword },
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+
+}
+
 // ****************************************** ACCOUNT ******************************************
 
 export const fetchAccountAPI = () => {

@@ -100,13 +100,6 @@ const BookDetail = () => {
             //sync React Context
             setCarts(data);
         }
-
-        // if (isBuyNow) {
-        //     navigate("/order")
-        // } else {
-        //     message.success("Thêm sản phẩm vào giỏ hàng thành công.")
-        // }
-
     };
 
     const handleBuyNow = () => {
