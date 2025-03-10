@@ -146,6 +146,11 @@ export const getBooksByIdAPI = (BookID: string) => {
     return axios.get<IBackendRes<IBook>>(urlBackend);
 };
 
+export const getCategoryPaginationAPI = (query: string) => {
+    const urlBackend = `/api/v1/categories/category-pagination?${query}`;
+    return axios.get<IBackendRes<IModelPaginate<ICategory>>>(urlBackend);
+}
+
 // ****************************************** Order ******************************************
 export const CreateOrderAPI = (orderData: IOrderRequest) => {
     const urlBackend = `/api/v1/orders/`;
