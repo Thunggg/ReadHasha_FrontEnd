@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
     Breadcrumb,
     Button,
@@ -32,7 +32,7 @@ const BookDetail = () => {
     const {
         user, isAuthenticated, setUser, setIsAuthenticated, carts, setCarts
     } = useCurrentApp();
-
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchBookDetail = async () => {
@@ -109,10 +109,47 @@ const BookDetail = () => {
 
     };
 
-    console.log(carts);
-
     const handleBuyNow = () => {
-        message.info("Chức năng mua ngay đang được phát triển");
+        if (!user) {
+            message.error("Bạn cần đăng nhập để thực hiện tính năng này.")
+            return;
+        }
+        //update localStorage
+        const cartStorage = localStorage.getItem("carts");
+        if (cartStorage && bookDetail) {
+            //update
+            const carts = JSON.parse(cartStorage) as ICart[];
+
+            //check exist
+            let isExistIndex = carts.findIndex(c => c.id === bookDetail.bookID);
+            if (isExistIndex > -1) {
+                carts[isExistIndex].quantity =
+                    carts[isExistIndex].quantity + currentQuantity;
+            } else {
+                carts.push({
+                    quantity: currentQuantity,
+                    id: bookDetail.bookID,
+                    detail: bookDetail
+                })
+            }
+
+            localStorage.setItem("carts", JSON.stringify(carts));
+
+            //sync React Context
+            setCarts(carts);
+        } else {
+            //create
+            const data = [{
+                id: bookDetail?.bookID!,
+                quantity: currentQuantity,
+                detail: bookDetail!
+            }]
+            localStorage.setItem("carts", JSON.stringify(data))
+
+            //sync React Context
+            setCarts(data);
+        }
+        navigate("/order");
     };
 
     const handleChangeButton = (type: UserAction) => {
