@@ -1,7 +1,8 @@
+import { ForgotPasswordContext } from "@/components/context/ForgotPassword.context";
 import { checkEmailExists, sendVerificationOTP } from "@/services/api";
 import { MailOutlined } from "@ant-design/icons";
 import { Button, Card, Form, Input, message, notification, theme } from "antd";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 // Giả sử bạn đã triển khai các API checkEmailExists và sendVerificationOTP ở phía backend
 // import { checkEmailExists, sendVerificationOTP } from "@/services/api";
@@ -10,6 +11,12 @@ const EmailVerificationPage = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const navigate = useNavigate();
     const { token } = theme.useToken();
+    const { setHasVisitedForgotPassword } = useContext(ForgotPasswordContext);
+
+    useEffect(() => {
+        // Đánh dấu rằng người dùng đã truy cập trang /forgot-password
+        setHasVisitedForgotPassword(true);
+    }, [setHasVisitedForgotPassword]);
 
     const onFinish = async (values: { email: string }) => {
         setLoading(true);

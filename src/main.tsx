@@ -39,6 +39,8 @@ import ManageCategoryPage from './pages/admin/manage.category';
 import EmailVerificationPage from './pages/client/auth/forgotPassword/forgotPassword';
 import VerifyEmailForgotPassword from './pages/client/auth/forgotPassword/verifyEmailForForgotPassword';
 import ResetPassword from './pages/client/auth/forgotPassword/ResetPassword';
+import { ForgotPasswordProvider } from './components/context/ForgotPassword.context';
+import ProtectedRouteForgotPassword from './components/auth/ProtectedRouteForgotPassword';
 
 const router = createBrowserRouter([
   {
@@ -157,11 +159,19 @@ const router = createBrowserRouter([
       },
       {
         path: "verifyEmail",
-        element: <VerifyEmailForgotPassword />
+        element: (
+          <ProtectedRouteForgotPassword>
+            <VerifyEmailForgotPassword />
+          </ProtectedRouteForgotPassword>
+        ),
       },
       {
         path: "reset-password",
-        element: <ResetPassword />
+        element: (
+          <ProtectedRouteForgotPassword>
+            <ResetPassword />
+          </ProtectedRouteForgotPassword>
+        ),
       }
     ]
   },
@@ -172,7 +182,9 @@ createRoot(document.getElementById('root')!).render(
     <App>
       <AppProvider>
         <ConfigProvider locale={viVN}>
-          <RouterProvider router={router} />
+          <ForgotPasswordProvider>
+            <RouterProvider router={router} />
+          </ForgotPasswordProvider>
         </ConfigProvider>
       </AppProvider>
     </App>
