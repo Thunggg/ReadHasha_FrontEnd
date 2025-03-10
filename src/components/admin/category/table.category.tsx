@@ -57,6 +57,7 @@ const TableCategory = () => {
         {
             title: 'Danh mục: ',
             dataIndex: 'catName',
+            sorter: true,
             render: (dom, entity) => (
                 <a onClick={() => {
                     setOpenViewDetail(true);
@@ -131,12 +132,21 @@ const TableCategory = () => {
                 actionRef={actionRef}
                 cardBordered
                 request={async (params, sort) => {
+                    console.log(sort);
                     let query = `current=${params.current}&pageSize=${params.pageSize}`;
                     if (params.catName) {
                         query += `&catName=${params.catName}`;
                     }
                     if (params.catStatus !== undefined) {
                         query += `&catStatus=${params.catStatus}`;
+                    }
+                    // Xử lý sort theo catID và catName
+                    if (sort && Object.keys(sort).length > 0) {
+                        if (sort.catID) {
+                            query += `&sort=${sort.catID === 'ascend' ? 'catID' : '-catID'}`;
+                        } else if (sort.catName) {
+                            query += `&sort=${sort.catName === 'ascend' ? 'catName' : '-catName'}`;
+                        }
                     }
                     const res = await getCategoryPaginationAPI(query);
                     console.log('API response:', res);
