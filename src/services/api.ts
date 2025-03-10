@@ -161,6 +161,10 @@ export const updateCategoryAPI = (data: ICategory) => {
     return axios.put<IBackendRes<ICategory>>(urlBackend, data);
 };
 
+export const deleteCategoryAPI = (id: number) => {
+    const urlBackend = `/api/v1/categories/${id}`;
+    return axios.delete<IBackendRes<ICategory>>(urlBackend);
+};
 
 // ****************************************** Order ******************************************
 export const CreateOrderAPI = (orderData: IOrderRequest) => {

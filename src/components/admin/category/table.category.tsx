@@ -1,4 +1,4 @@
-import { getCategoryPaginationAPI } from '@/services/api';
+import { deleteCategoryAPI, getCategoryPaginationAPI } from '@/services/api';
 import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, DeleteTwoTone, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
@@ -35,20 +35,26 @@ const TableCategory = () => {
     const [openModalUpdate, setOpenModalUpdate] = useState<boolean>(false);
     const [dataUpdate, setDataUpdate] = useState<ICategory | null>(null);
 
-    // const handleDeleteCategory = async (catID: number) => {
-    //     setIsDeleteCategory(true)
-    //     const res = await deleteCategoryAPI(catID);
-    //     if (res.statusCode === 200) {
-    //         message.success('Xóa danh mục thành công!');
-    //         actionRef.current?.reload();
-    //     } else {
-    //         notification.error({
-    //             message: 'Đã có lỗi xảy ra',
-    //             description: res.message
-    //         })
-    //     }
-    //     setIsDeleteCategory(false)
-    // }
+    const handleDeleteCategory = async (catID: number) => {
+        setIsDeleteCategory(true)
+        const res = await deleteCategoryAPI(catID);
+        if (res.statusCode === 200) {
+            message.success('Xóa danh mục thành công!');
+            // Giả sử meta.total hiện tại là tổng số bản ghi trước khi xóa.
+            // Nếu sau khi xóa (meta.total - 1) ≤ (meta.current - 1) * meta.pageSize
+            // nghĩa là trang hiện tại trở nên rỗng, thì giảm current xuống 1.
+            if (meta.current > 1 && (meta.total - 1) <= (meta.current - 1) * meta.pageSize) {
+                setMeta((prev) => ({ ...prev, current: prev.current - 1 }));
+            }
+            actionRef.current?.reload();
+        } else {
+            notification.error({
+                message: 'Đã có lỗi xảy ra',
+                description: res.message
+            })
+        }
+        setIsDeleteCategory(false)
+    }
 
     const columns: ProColumns<ICategory>[] = [
         {
@@ -113,7 +119,7 @@ const TableCategory = () => {
                         placement="leftTop"
                         title="Xác nhận xóa danh mục"
                         description="Bạn có chắc chắn muốn xóa danh mục này?"
-                        // onConfirm={() => handleDeleteCategory(entity.catID)}
+                        onConfirm={() => handleDeleteCategory(entity.catID)}
                         okText="Xác nhận"
                         cancelText="Hủy"
                         okButtonProps={{ loading: isDeleteCategory }}
