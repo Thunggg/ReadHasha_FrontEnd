@@ -2,11 +2,11 @@ import { useCurrentApp } from "@/components/context/app.context";
 import { App, Button, Col, Form, Input, Row, Typography } from "antd";
 import { useEffect, useState } from "react";
 import type { FormProps } from 'antd';
+import { updatePasswordAPI } from "services/api";
 
 const { Title } = Typography;
 
 type FieldType = {
-    email: string;
     oldPassword: string;
     newPassword: string;
     confirmPassword: string;
@@ -14,48 +14,36 @@ type FieldType = {
 
 const ChangePassword = () => {
     const [form] = Form.useForm();
-    const [isSubmit, setIsSubmit] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const { user } = useCurrentApp();
     const { message, notification } = App.useApp();
 
-    useEffect(() => {
-        if (user) {
-            form.setFieldValue("email", user.email);
-        }
-    }, [user]);
-
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        const { email, oldPassword, newPassword } = values;
-        setIsSubmit(true);
+        const { oldPassword, newPassword } = values;
+        setIsSubmitting(true);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/accounts/update-user`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                },
-                body: JSON.stringify({
-                    username: user?.username,
-                    oldPassword,
-                    newPassword
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Có lỗi xảy ra khi cập nhật mật khẩu");
+            // Gọi API đổi mật khẩu
+            const res = await updatePasswordAPI({ oldPassword, newPassword });
+            if (res.statusCode === 200) {
+                // Thông báo thành công
+                message.success("Đổi mật khẩu thành công!");
+                form.resetFields();
+            } else {
+                notification.error({
+                    message: "Lỗi cập nhật",
+                    description: res.message
+                });
             }
 
-            message.success("Cập nhật mật khẩu thành công");
-            form.resetFields(["oldPassword", "newPassword", "confirmPassword"]);
-        } catch (error) {
+        } catch (error: any) {
+            // Xử lý lỗi
             notification.error({
-                message: "Lỗi cập nhật mật khẩu",
-                description: error instanceof Error ? error.message : "Lỗi không xác định"
+                message: "Lỗi đổi mật khẩu",
+                description: error.response?.data?.message || "Đã xảy ra lỗi khi đổi mật khẩu",
             });
         } finally {
-            setIsSubmit(false);
+            setIsSubmitting(false);
         }
     };
 
@@ -73,13 +61,6 @@ const ChangePassword = () => {
                         onFinish={onFinish}
                         initialValues={{ remember: true }}
                     >
-                        <Form.Item<FieldType>
-                            label="Email"
-                            name="email"
-                        >
-                            <Input disabled />
-                        </Form.Item>
-
                         <Form.Item<FieldType>
                             label="Mật khẩu hiện tại"
                             name="oldPassword"
@@ -133,7 +114,7 @@ const ChangePassword = () => {
                             <Button
                                 type="primary"
                                 htmlType="submit"
-                                loading={isSubmit}
+                                loading={isSubmitting}
                                 block
                                 size="large"
                             >

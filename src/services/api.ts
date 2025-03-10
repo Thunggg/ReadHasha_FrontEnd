@@ -72,6 +72,24 @@ export const logoutAPI = () => {
     return axios.post<IBackendRes<null>>(urlBackend);
 }
 
+export const updatePasswordAPI = async (data: {
+    oldPassword: string;
+    newPassword: string;
+}) => {
+    const urlBackend = "/api/v1/accounts/update-password";
+    const token = localStorage.getItem("access_token");
+
+    if (!token) {
+        throw new Error("Không tìm thấy token! Vui lòng đăng nhập lại.");
+    }
+
+    return axios.post<IBackendRes<IUser>>(urlBackend, data, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
+
 // ****************************************** ACCOUNT ******************************************
 
 export const fetchAccountAPI = () => {

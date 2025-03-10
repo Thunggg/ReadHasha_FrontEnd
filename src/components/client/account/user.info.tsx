@@ -1,8 +1,12 @@
 import { useCurrentApp } from "@/components/context/app.context";
-import { AntDesignOutlined, UploadOutlined } from "@ant-design/icons";
-import { App, Avatar, Button, Col, Form, Input, Row } from "antd";
+import { AntDesignOutlined } from "@ant-design/icons";
+import { App, Avatar, Button, Col, Form, Input, Row, DatePicker, Select } from "antd";
 import { useEffect, useState } from "react";
 import type { FormProps } from 'antd';
+import { updateUserAPI } from "@/services/api"; // Import API đã viết sẵn
+import dayjs from 'dayjs'; // Xử lý ngày tháng
+
+const { Option } = Select;
 
 type FieldType = {
     username: string;
@@ -11,6 +15,8 @@ type FieldType = {
     lastName: string;
     phone: string;
     address: string;
+    dob?: dayjs.Dayjs; // Sử dụng dayjs để xử lý ngày tháng
+    sex?: number;
 };
 
 const UserInfo = () => {
@@ -27,49 +33,56 @@ const UserInfo = () => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 phone: user.phone,
-                address: user.address
-            })
+                address: user.address,
+                dob: user.dob ? dayjs(user.dob) : undefined, // Chuyển đổi ngày tháng
+                sex: user.sex
+            });
         }
-    }, [user])
+    }, [user]);
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
         try {
             setIsSubmit(true);
+
             const updateData = {
                 username: values.username,
                 firstName: values.firstName,
                 lastName: values.lastName,
                 phone: values.phone,
-                address: values.address
+                address: values.address,
+                dob: values.dob ? values.dob.toDate() : undefined, // Chuyển đổi ngày tháng
+                sex: values.sex,
+                email: user!.email // Thêm email từ context
             };
 
-            const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/accounts/update-user`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-                },
-                body: JSON.stringify(updateData)
-            });
+            console.log(values);
 
-            if (!response.ok) throw new Error(await response.text());
+            // Gọi API đã được định nghĩa sẵn
+            const res = await updateUserAPI(updateData);
 
-            // Update context
-            setUser({
-                ...user!,
-                ...updateData
-            });
+            if (res.data && res.statusCode === 200) {
+                // Cập nhật context với dữ liệu mới từ server
+                setUser({
+                    ...user!,
+                    ...res.data
+                });
 
-            message.success("Cập nhật thông tin thành công");
-        } catch (error) {
+                message.success("Cập nhật thông tin thành công");
+            } else {
+                notification.error({
+                    message: "Lỗi cập nhật",
+                    description: res.message
+                });
+            }
+        } catch (error: any) {
             notification.error({
                 message: "Lỗi cập nhật",
-                description: error instanceof Error ? error.message : "Lỗi không xác định"
+                description: error.response?.data?.message || "Lỗi không xác định"
             });
         } finally {
             setIsSubmit(false);
         }
-    }
+    };
 
     return (
         <div style={{ minHeight: 400, padding: 20 }}>
@@ -146,6 +159,26 @@ const UserInfo = () => {
                             <Input.TextArea />
                         </Form.Item>
 
+                        <Form.Item<FieldType>
+                            label="Ngày sinh"
+                            name="dob"
+                        >
+                            <DatePicker
+                                style={{ width: '100%' }}
+                                format="DD/MM/YYYY"
+                            />
+                        </Form.Item>
+
+                        <Form.Item<FieldType>
+                            label="Giới tính"
+                            name="sex"
+                        >
+                            <Select>
+                                <Option value={0}>Nam</Option>
+                                <Option value={1}>Nữ</Option>
+                            </Select>
+                        </Form.Item>
+
                         <Form.Item>
                             <Button
                                 type="primary"
@@ -159,7 +192,7 @@ const UserInfo = () => {
                 </Col>
             </Row>
         </div>
-    )
-}
+    );
+};
 
 export default UserInfo;
