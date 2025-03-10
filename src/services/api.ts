@@ -151,6 +151,12 @@ export const getCategoryPaginationAPI = (query: string) => {
     return axios.get<IBackendRes<IModelPaginate<ICategory>>>(urlBackend);
 }
 
+export const createCategoryAPI = (data: ICategory) => {
+    const urlBackend = `/api/v1/categories/`;
+    return axios.post<IBackendRes<ICategory>>(urlBackend, data);
+};
+
+
 // ****************************************** Order ******************************************
 export const CreateOrderAPI = (orderData: IOrderRequest) => {
     const urlBackend = `/api/v1/orders/`;

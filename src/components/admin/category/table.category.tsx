@@ -5,6 +5,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Button, message, notification, Popconfirm } from 'antd';
 import { useRef, useState } from 'react';
 import DetailCategory from './detail.category';
+import CreateCategory from './create.category';
 // import DetailCategory from './detail.category';
 // import CreateCategory from './create.category';
 // import EditCategory from './update.category';
@@ -191,13 +192,13 @@ const TableCategory = () => {
                 dataViewDetail={dataViewDetail}
             />
 
-            {/* <CreateCategory
+            <CreateCategory
                 openModalCreate={openModalCreate}
                 setOpenModalCreate={setOpenModalCreate}
                 reloadTable={() => actionRef.current?.reload()}
             />
 
-            <EditCategory
+            {/* <EditCategory
                 openModalUpdate={openModalUpdate}
                 setOpenModalUpdate={setOpenModalUpdate}
                 dataUpdate={dataUpdate}
