@@ -156,6 +156,11 @@ export const createCategoryAPI = (data: ICategory) => {
     return axios.post<IBackendRes<ICategory>>(urlBackend, data);
 };
 
+export const updateCategoryAPI = (data: ICategory) => {
+    const urlBackend = `/api/v1/categories/`;
+    return axios.put<IBackendRes<ICategory>>(urlBackend, data);
+};
+
 
 // ****************************************** Order ******************************************
 export const CreateOrderAPI = (orderData: IOrderRequest) => {

@@ -6,6 +6,7 @@ import { Button, message, notification, Popconfirm } from 'antd';
 import { useRef, useState } from 'react';
 import DetailCategory from './detail.category';
 import CreateCategory from './create.category';
+import EditCategory from './update.category';
 // import DetailCategory from './detail.category';
 // import CreateCategory from './create.category';
 // import EditCategory from './update.category';
@@ -198,12 +199,12 @@ const TableCategory = () => {
                 reloadTable={() => actionRef.current?.reload()}
             />
 
-            {/* <EditCategory
+            <EditCategory
                 openModalUpdate={openModalUpdate}
                 setOpenModalUpdate={setOpenModalUpdate}
                 dataUpdate={dataUpdate}
                 reloadTable={() => actionRef.current?.reload()}
-            /> */}
+            />
         </>
     );
 };
