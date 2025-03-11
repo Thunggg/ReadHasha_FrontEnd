@@ -6,7 +6,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Button, message, notification, Popconfirm } from 'antd';
 import { useRef, useState } from 'react';
 import dayjs from 'dayjs';
-// import DetailPromotion from './detail.promotion';
+import DetailPromotion from './detail.promotion';
 // import CreatePromotion from './create.promotion';
 // import EditPromotion from './update.promotion';
 
@@ -251,13 +251,13 @@ const TablePromotion = () => {
                 ]}
             />
 
-            {/* <DetailPromotion
+            <DetailPromotion
                 openViewDetail={openViewDetail}
                 setOpenViewDetail={setOpenViewDetail}
                 dataViewDetail={dataViewDetail}
             />
 
-            <CreatePromotion
+            {/* <CreatePromotion
                 openModalCreate={openModalCreate}
                 setOpenModalCreate={setOpenModalCreate}
                 reloadTable={() => actionRef.current?.reload()}

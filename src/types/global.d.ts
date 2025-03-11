@@ -167,5 +167,6 @@ declare global {
         endDate: Date;
         quantity: number;
         proStatus: number;
+        createdBy: IUser;
     }
 }
