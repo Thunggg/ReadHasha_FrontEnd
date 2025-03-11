@@ -1,9 +1,11 @@
 import { getPromotionPaginationAPI } from '@/services/api';
+import { dateRangeValidate } from '@/services/helper';
 import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, message, notification, Popconfirm } from 'antd';
 import { useRef, useState } from 'react';
+import dayjs from 'dayjs';
 // import DetailPromotion from './detail.promotion';
 // import CreatePromotion from './create.promotion';
 // import EditPromotion from './update.promotion';
@@ -11,6 +13,7 @@ import { useRef, useState } from 'react';
 type TSearch = {
     proName: string;
     proStatus: number;
+    dateRange: string[]; // Thêm trường dateRange để lọc theo ngày bắt đầu và kết thúc
 };
 
 const TablePromotion = () => {
@@ -103,6 +106,16 @@ const TablePromotion = () => {
                 <span>{new Date(entity.endDate).toLocaleDateString('vi-VN')}</span>
             ),
         },
+        // Thêm cột lọc theo khoảng thời gian
+        {
+            title: 'Thời gian',
+            dataIndex: 'dateRange',
+            valueType: 'dateRange',
+            hideInTable: true,
+            fieldProps: {
+                placeholder: ['Ngày bắt đầu', 'Ngày kết thúc'],
+            },
+        },
         {
             title: 'Số lượng',
             dataIndex: 'quantity',
@@ -150,7 +163,7 @@ const TablePromotion = () => {
                         title="Xác nhận xóa khuyến mãi"
                         description="Bạn có chắc chắn muốn xóa khuyến mãi này?"
                         onConfirm={() => handleDeletePromotion(entity.proID)}
-                        okText="Xác nhận"
+                        okText="Xác nhận "
                         cancelText="Hủy"
                         okButtonProps={{ loading: isDeletePromotion }}
                     >
@@ -175,6 +188,16 @@ const TablePromotion = () => {
                     if (params.proStatus !== undefined) {
                         query += `&proStatus=${params.proStatus}`;
                     }
+
+                    // Xử lý lọc theo khoảng thời gian
+                    const dateRange = dateRangeValidate(params.dateRange);
+                    if (dateRange) {
+                        const formattedStartDate = dayjs(dateRange[0]).format('YYYY-MM-DD');
+                        const formattedEndDate = dayjs(dateRange[1]).format('YYYY-MM-DD');
+                        query += `&startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
+                        console.log(query)
+                    }
+
                     // Xử lý sort: nếu có sắp xếp theo các trường cho phép
                     if (sort && Object.keys(sort).length > 0) {
                         if (sort.proID) {

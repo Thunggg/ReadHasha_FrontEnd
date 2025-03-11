@@ -199,7 +199,6 @@ const TableUser = () => {
                             query += `&startDob=${formattedStart}&endDob=${formattedEnd}`;
                         }
                     }
-
                     if (sort && sort.dob) {
                         query += `&sort=${sort.dob === "ascend" ? "dob" : "-dob"}`
                     } else query += `&sort=-dob`;
