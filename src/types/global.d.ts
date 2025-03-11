@@ -169,4 +169,27 @@ declare global {
         proStatus: number;
         createdBy: IUser;
     }
+
+    interface IOrderDetail {
+        odid: number;
+        quantity: number;
+        bookID: {
+            bookID: number;
+            bookTitle: string;
+            author: string;
+            image: string;
+            bookPrice: number;
+            bookStatus: number;
+        };
+        totalPrice: number;
+    }
+
+    interface IOrder {
+        orderID: number;
+        orderDate: string;
+        orderStatus: number;
+        orderDetailList: IOrderDetail[];
+        orderAddress: string;
+        customerName: string;
+    }
 }
