@@ -7,7 +7,7 @@ import { Button, message, notification, Popconfirm } from 'antd';
 import { useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import DetailPromotion from './detail.promotion';
-// import CreatePromotion from './create.promotion';
+import CreatePromotion from './create.promotion';
 // import EditPromotion from './update.promotion';
 
 type TSearch = {
@@ -257,13 +257,13 @@ const TablePromotion = () => {
                 dataViewDetail={dataViewDetail}
             />
 
-            {/* <CreatePromotion
+            <CreatePromotion
                 openModalCreate={openModalCreate}
                 setOpenModalCreate={setOpenModalCreate}
                 reloadTable={() => actionRef.current?.reload()}
             />
 
-            <EditPromotion
+            {/* <EditPromotion
                 openModalUpdate={openModalUpdate}
                 setOpenModalUpdate={setOpenModalUpdate}
                 dataUpdate={dataUpdate}

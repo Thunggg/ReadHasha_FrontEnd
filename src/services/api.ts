@@ -236,3 +236,11 @@ export const getPromotionPaginationAPI = (query: string) => {
     const urlBackend = `/api/v1/promotions/promotion-pagination?${query}`;
     return axios.get<IBackendRes<IModelPaginate<IPromotion>>>(urlBackend);
 }
+
+export const createPromotionAPI = (data: IPromotion) => {
+    const urlBackend = `/api/v1/promotions/create`;
+    return axios.post<IBackendRes<IPromotion>>(urlBackend, data);
+}
+
+
+
