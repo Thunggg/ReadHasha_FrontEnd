@@ -1,4 +1,4 @@
-import { getPromotionPaginationAPI } from '@/services/api';
+import { deletePromotionAPI, getPromotionPaginationAPI } from '@/services/api';
 import { dateRangeValidate } from '@/services/helper';
 import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
@@ -8,7 +8,9 @@ import { useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import DetailPromotion from './detail.promotion';
 import CreatePromotion from './create.promotion';
-// import EditPromotion from './update.promotion';
+import EditPromotion from './edit.promotion';
+import { useCurrentApp } from '@/components/context/app.context';
+
 
 type TSearch = {
     proName: string;
@@ -34,24 +36,37 @@ const TablePromotion = () => {
 
     const [openModalUpdate, setOpenModalUpdate] = useState<boolean>(false);
     const [dataUpdate, setDataUpdate] = useState<any>(null);
+    const { user } = useCurrentApp();
+
+
 
     const handleDeletePromotion = async (proID: number) => {
-        // setIsDeletePromotion(true);
-        // const res = await deletePromotionAPI(proID);
-        // if (res.statusCode === 200) {
-        //     message.success('Xóa khuyến mãi thành công!');
-        //     // Nếu sau khi xóa trang hiện tại rỗng thì chuyển về trang trước đó.
-        //     if (meta.current > 1 && (meta.total - 1) <= (meta.current - 1) * meta.pageSize) {
-        //         setMeta((prev) => ({ ...prev, current: prev.current - 1 }));
-        //     }
-        //     actionRef.current?.reload();
-        // } else {
-        //     notification.error({
-        //         message: 'Đã có lỗi xảy ra',
-        //         description: res.message,
-        //     });
-        // }
-        // setIsDeletePromotion(false);
+        setIsDeletePromotion(true);
+        try {
+            // Lấy username từ context/auth (ví dụ: sử dụng useCurrentApp)
+            const username = user?.username || '';
+
+            const res = await deletePromotionAPI(proID, username); // Truyền username
+            if (res.statusCode === 200) {
+                message.success('Xóa khuyến mãi thành công!');
+                if (meta.current > 1 && (meta.total - 1) <= (meta.current - 1) * meta.pageSize) {
+                    setMeta((prev) => ({ ...prev, current: prev.current - 1 }));
+                }
+                actionRef.current?.reload();
+            } else {
+                notification.error({
+                    message: 'Đã có lỗi xảy ra',
+                    description: res.message,
+                });
+            }
+        } catch (error) {
+            notification.error({
+                message: 'Lỗi hệ thống',
+                description: 'Không thể kết nối đến server',
+            });
+        } finally {
+            setIsDeletePromotion(false);
+        }
     };
 
     const columns: ProColumns<any>[] = [
@@ -263,12 +278,12 @@ const TablePromotion = () => {
                 reloadTable={() => actionRef.current?.reload()}
             />
 
-            {/* <EditPromotion
+            <EditPromotion
                 openModalUpdate={openModalUpdate}
                 setOpenModalUpdate={setOpenModalUpdate}
                 dataUpdate={dataUpdate}
                 reloadTable={() => actionRef.current?.reload()}
-            /> */}
+            />
         </>
     );
 };

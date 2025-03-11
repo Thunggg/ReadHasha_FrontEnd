@@ -242,5 +242,22 @@ export const createPromotionAPI = (data: IPromotion) => {
     return axios.post<IBackendRes<IPromotion>>(urlBackend, data);
 }
 
+// Thêm hàm updatePromotionAPI vào file api.ts
+export const updatePromotionAPI = async (data: any) => {
+    try {
+        const urlBackend = `/api/v1/promotions/update`;
+        return axios.put<IBackendRes<IPromotion>>(urlBackend, data);
+    } catch (error) {
+        console.error('Error updating promotion:', error);
+        return {
+            statusCode: 500,
+            message: 'Lỗi kết nối đến server'
+        };
+    }
+};
 
-
+// Sửa lại hàm deletePromotionAPI
+export const deletePromotionAPI = (proID: number, username: string) => {
+    const urlBackend = `/api/v1/promotions/${proID}?username=${username}`; // Đúng endpoint
+    return axios.delete<IBackendRes<IPromotion>>(urlBackend);
+}
