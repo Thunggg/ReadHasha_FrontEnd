@@ -41,6 +41,7 @@ import VerifyEmailForgotPassword from './pages/client/auth/forgotPassword/verify
 import ResetPassword from './pages/client/auth/forgotPassword/ResetPassword';
 import { ForgotPasswordProvider } from './components/context/ForgotPassword.context';
 import ProtectedRouteForgotPassword from './components/auth/ProtectedRouteForgotPassword';
+import ManagePromotionPage from './pages/admin/manage.promotion';
 
 const router = createBrowserRouter([
   {
@@ -126,6 +127,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ManageCategoryPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "promotion",
+        element: (
+          <ProtectedRoute>
+            <ManagePromotionPage />
           </ProtectedRoute>
         ),
       }

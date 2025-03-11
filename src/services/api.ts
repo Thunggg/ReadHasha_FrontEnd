@@ -230,3 +230,9 @@ export const getHistoryAPI = (username: string) => {
     const urlBackend = `/api/v1/orders/history?username=${username}`;
     return axios.get<IBackendRes<IHistory[]>>(urlBackend);
 };
+
+// ****************************************** Promotion ******************************************
+export const getPromotionPaginationAPI = (query: string) => {
+    const urlBackend = `/api/v1/promotions/promotion-pagination?${query}`;
+    return axios.get<IBackendRes<IModelPaginate<IPromotion>>>(urlBackend);
+}

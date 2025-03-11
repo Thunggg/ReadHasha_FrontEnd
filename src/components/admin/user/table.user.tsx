@@ -9,6 +9,7 @@ import { useRef, useState } from 'react';
 import DetailUser from './detail.user';
 import CreateUser from './create.user';
 import UpdateUser from './update.user';
+import dayjs from 'dayjs';
 
 
 type TSearch = {
@@ -105,7 +106,7 @@ const TableUser = () => {
             hideInSearch: true,
         },
         {
-            title: 'Created At',
+            title: 'DOB',
             dataIndex: 'createdAtRange',
             valueType: 'dateRange',
             hideInTable: true,
@@ -193,9 +194,10 @@ const TableUser = () => {
 
                         const createDateRange = dateRangeValidate(params.createdAtRange);
                         if (createDateRange) {
-                            query += `&createdAt=${createDateRange[0]}&createdAt=${createDateRange[1]}`
+                            const formattedStart = dayjs(createDateRange[0]).format('YYYY-MM-DD');
+                            const formattedEnd = dayjs(createDateRange[1]).format('YYYY-MM-DD');
+                            query += `&startDob=${formattedStart}&endDob=${formattedEnd}`;
                         }
-
                     }
 
                     if (sort && sort.dob) {

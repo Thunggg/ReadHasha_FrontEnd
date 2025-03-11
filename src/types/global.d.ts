@@ -158,4 +158,14 @@ declare global {
         orderDetailList: IHistoryDetail[];
     }
 
+    interface IPromotion {
+        proID: number;
+        proName: string;
+        proCode: string;
+        discount: number;
+        startDate: Date;
+        endDate: Date;
+        quantity: number;
+        proStatus: number;
+    }
 }

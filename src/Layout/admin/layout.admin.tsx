@@ -9,6 +9,7 @@ import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     UnorderedListOutlined,
+    GiftOutlined,
 } from '@ant-design/icons';
 import { Layout, Menu, Dropdown, Space, Avatar } from 'antd';
 import { Outlet, useLocation } from "react-router-dom";
@@ -40,7 +41,7 @@ const LayoutAdmin = () => {
         },
         {
             label: <Link to='/admin/user'>Manage Account</Link>,
-            key: '/admin/user/crud',
+            key: '/admin/user',
             icon: <TeamOutlined />,
         },
         {
@@ -52,6 +53,11 @@ const LayoutAdmin = () => {
             label: <Link to='/admin/category'>Manage Category</Link>,
             key: '/admin/category',
             icon: <UnorderedListOutlined />
+        },
+        {
+            label: <Link to='/admin/promotion'>Manage Promotion</Link>,
+            key: '/admin/promotion',
+            icon: <GiftOutlined />
         },
         {
             label: <Link to='/admin/order'>Manage Orders</Link>,
