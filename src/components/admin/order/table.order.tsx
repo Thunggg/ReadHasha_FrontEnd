@@ -114,19 +114,22 @@ const TableOrder: React.FC = () => {
             dataIndex: 'orderAddress',
             hideInSearch: true,
             ellipsis: false,
-            // defaultHidden: true,
+            // defaultHidden: true as any,
             render: (text) => <Text type="secondary">{text}</Text>,
         },
         {
             title: 'Tổng tiền',
-            dataIndex: 'orderDetailList',
+            dataIndex: 'totalPrice', // Đặt dataIndex là totalPrice để hỗ trợ sắp xếp
             hideInSearch: true,
-            sorter: true,
-            render: (_, record) => (
-                <Text strong style={{ color: '#f5222d' }}>
-                    {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(calculateOrderTotal(record.orderDetailList))}
-                </Text>
-            ),
+            sorter: true, // Cho phép sắp xếp
+            render: (_, record) => {
+                const total = calculateOrderTotal(record.orderDetailList);
+                return (
+                    <Text strong style={{ color: '#f5222d' }}>
+                        {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}
+                    </Text>
+                );
+            },
         },
         {
             title: 'Ngày đặt hàng',
@@ -199,7 +202,6 @@ const TableOrder: React.FC = () => {
             <ProTable<IOrder, TSearch>
                 columns={columns}
                 actionRef={actionRef}
-                onChange={() => { console.log("OK") }}
                 cardBordered
                 request={async (params, sort, filter) => {
                     let query = `current=${params.current}&pageSize=${params.pageSize}`;
@@ -209,7 +211,7 @@ const TableOrder: React.FC = () => {
                     }
 
                     if (params.customerName) {
-                        query += `&customerName=${params.customerName}`;
+                        query += `&username=${params.customerName}`;
                     }
 
                     if (params.orderStatus !== undefined) {
@@ -228,10 +230,15 @@ const TableOrder: React.FC = () => {
                     if (sort) {
                         if (sort.orderDate) {
                             query += `&sort=${sort.orderDate === 'ascend' ? 'orderDate' : '-orderDate'}`;
+                        } else if (sort.totalPrice) {
+                            // Gửi sort totalPrice đến backend
+                            query += `&sort=${sort.totalPrice === 'ascend' ? 'totalPrice' : '-totalPrice'}`;
+                        } else if (sort.orderID) {
+                            query += `&sort=${sort.orderID === 'ascend' ? 'orderID' : '-orderID'}`;
                         }
                     } else {
-                        // Mặc định sắp xếp theo thời gian tạo giảm dần (mới nhất lên đầu)
-                        query += `&sort=-orderDate`;
+                        // Mặc định sắp xếp theo orderID giảm dần (mới nhất trước)
+                        query += `&sort=-orderID`;
                     }
 
                     const res = await getOrderPaginationAPI(query);
