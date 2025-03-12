@@ -20,7 +20,7 @@ const AppHeader = (props: IProps) => {
     const [openDrawer, setOpenDrawer] = useState(false);
     // Lưu gợi ý tìm kiếm dưới dạng mảng IBook
     const [suggestions, setSuggestions] = useState<IBook[]>([]);
-    const { isAuthenticated, user, setUser, setIsAuthenticated, carts } = useCurrentApp();
+    const { isAuthenticated, user, setUser, setIsAuthenticated, carts, setCarts } = useCurrentApp();
     const [openManageAccount, setOpenManageAccount] = useState<boolean>(false);
 
     const navigate = useNavigate();
@@ -58,7 +58,9 @@ const AppHeader = (props: IProps) => {
         if (res) {
             setUser(null);
             setIsAuthenticated(false);
+            setCarts([]);
             localStorage.removeItem("access_token");
+            localStorage.removeItem("carts");
         }
     };
 
