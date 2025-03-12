@@ -1,0 +1,48 @@
+.order-status-card .ant-card-body {
+    padding: 24px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .order-products-card .ant-card-head {
+    background-color: #e6f7ff;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  
+  .order-customer-card .ant-card-head,
+  .order-payment-card .ant-card-head,
+  .order-time-card .ant-card-head {
+    background-color: #e6f7ff;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+  
+  .order-customer-card .ant-card-body,
+  .order-payment-card .ant-card-body,
+  .order-time-card .ant-card-body {
+    padding: 16px;
+  }
+  
+  .ant-descriptions-item-label {
+    color: #5a5a5a;
+  }
+  
+  .ant-modal-content {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .ant-modal-header {
+    background-color: #f0f5ff;
+    padding: 16px 24px;
+  }
+  
+  .ant-modal-title {
+    color: #1890ff;
+  }
+  
+  .ant-modal-footer {
+    border-top: 1px solid #f0f0f0;
+    padding: 16px 24px;
+  }

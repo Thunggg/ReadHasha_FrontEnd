@@ -177,9 +177,27 @@ declare global {
             bookID: number;
             bookTitle: string;
             author: string;
+            translator: string | null;
+            publisher: string;
+            publicationYear: number;
+            isbn: string;
             image: string;
+            bookDescription: string;
+            hardcover: number;
+            dimension: string;
+            weight: number;
             bookPrice: number;
+            bookQuantity: number;
             bookStatus: number;
+            bookCategories: {
+                bookCateId: number;
+                catId: {
+                    catID: number;
+                    catName: string;
+                    catStatus: number;
+                    catDescription: string;
+                }
+            }[];
         };
         totalPrice: number;
     }

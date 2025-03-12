@@ -6,6 +6,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { Button, Tag, Tooltip, Space, Typography, Avatar } from 'antd';
 import dayjs from 'dayjs';
 import { getOrderPaginationAPI } from '@/services/api';
+import DetailOrder from './detail.order';
 // import DetailOrder from './detail.order';
 
 const { Text } = Typography;
@@ -286,11 +287,11 @@ const TableOrder: React.FC = () => {
                 }}
             />
 
-            {/* <DetailOrder
+            <DetailOrder
                 openViewDetail={openViewDetail}
                 setOpenViewDetail={setOpenViewDetail}
                 dataViewDetail={dataViewDetail}
-            /> */}
+            />
         </>
     );
 };
