@@ -30,7 +30,7 @@ const TableOrder: React.FC = () => {
     const actionRef = useRef<ActionType>();
     const [meta, setMeta] = useState({
         current: 1,
-        pageSize: 10,
+        pageSize: 5,
         pages: 0,
         total: 0,
     });
@@ -113,6 +113,7 @@ const TableOrder: React.FC = () => {
             dataIndex: 'orderAddress',
             hideInSearch: true,
             ellipsis: false,
+            // defaultHidden: true,
             render: (text) => <Text type="secondary">{text}</Text>,
         },
         {
@@ -197,6 +198,7 @@ const TableOrder: React.FC = () => {
             <ProTable<IOrder, TSearch>
                 columns={columns}
                 actionRef={actionRef}
+                onChange={() => { console.log("OK") }}
                 cardBordered
                 request={async (params, sort, filter) => {
                     let query = `current=${params.current}&pageSize=${params.pageSize}`;
@@ -247,7 +249,7 @@ const TableOrder: React.FC = () => {
                     current: meta.current,
                     pageSize: meta.pageSize,
                     showSizeChanger: true,
-                    pageSizeOptions: [10, 20, 50, 100],
+                    pageSizeOptions: [5, 10, 20, 50, 100],
                     total: meta.total,
                     showTotal: (total, range) => (
                         <div>
@@ -265,6 +267,20 @@ const TableOrder: React.FC = () => {
                         <Tag color="blue">Tổng số: {meta.total}</Tag>
                     </Space>
                 }
+                columnsState={{
+                    persistenceKey: 'order-table-columns',
+                    persistenceType: 'localStorage',
+                    defaultValue: {
+                        orderAddress: { show: false }, // Mặc định ẩn cột địa chỉ
+                    },
+                }}
+                options={{
+                    setting: {
+                        listsHeight: 400,
+                        draggable: true,
+                        checkable: true,
+                    },
+                }}
                 toolbar={{
                     actions: [],
                 }}
