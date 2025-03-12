@@ -25,8 +25,6 @@ const LoginPage = () => {
         setLoading(true);
         try {
             const res = await LoginAPI(values.username, values.password);
-
-            console.log(">>>>>>>>>>>> RES:", res);
             if (res && res.statusCode == 1051 || res && res.statusCode == 1052) {
                 notification.error({
                     message: "Đăng nhập thất bại",

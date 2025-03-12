@@ -14,7 +14,7 @@ import {
     Tabs,
 } from "antd";
 import { HeartOutlined, MinusOutlined, PlusOutlined, ShoppingCartOutlined } from "@ant-design/icons";
-import { getBooksByIdAPI } from "@/services/api";
+import { addBookToCartAPI, fetchAccountAPI, getBooksByIdAPI } from "@/services/api";
 import { useCurrentApp } from "@/components/context/app.context";
 // Remove or comment out the problematic import until we create the file
 // import "@/styles/bookDetail.scss";
@@ -60,45 +60,52 @@ const BookDetail = () => {
     }, [id]);
 
     // Add handlers for the buttons
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!user) {
-            message.error("Bạn cần đăng nhập để thực hiện tính năng này.")
+            message.error("Bạn cần đăng nhập để thực hiện tính năng này.");
             return;
         }
-        //update localStorage
-        const cartStorage = localStorage.getItem("carts");
-        if (cartStorage && bookDetail) {
-            //update
-            const carts = JSON.parse(cartStorage) as ICart[];
 
-            //check exist
-            let isExistIndex = carts.findIndex(c => c.id === bookDetail.bookID);
-            if (isExistIndex > -1) {
-                carts[isExistIndex].quantity =
-                    carts[isExistIndex].quantity + currentQuantity;
+        if (!bookDetail) {
+            message.error("Không tìm thấy thông tin sách!");
+            return;
+        }
+
+        try {
+            // Gọi API để thêm sách vào giỏ hàng trong database
+            const response = await addBookToCartAPI(
+                user.username,
+                bookDetail.bookID,
+                currentQuantity
+            );
+
+            if (response.statusCode === 200) {
+                // Cập nhật lại giỏ hàng từ database
+                const accountRes = await fetchAccountAPI();
+
+                if (accountRes.data?.cartCollection) {
+                    const cartsFromDB = accountRes.data.cartCollection.map(item => ({
+                        id: item.bookID.bookID,
+                        quantity: item.quantity,
+                        detail: item.bookID
+                    }));
+
+                    setCarts(cartsFromDB);
+                    localStorage.setItem("carts", JSON.stringify(cartsFromDB));
+                } else {
+                    setCarts([]);
+                    localStorage.setItem("carts", JSON.stringify([]));
+                }
+
+                message.success("Đã thêm sách vào giỏ hàng!");
+                return true;
             } else {
-                carts.push({
-                    quantity: currentQuantity,
-                    id: bookDetail.bookID,
-                    detail: bookDetail
-                })
+                message.error(response.message || "Xóa sách khỏi giỏ hàng thất bại!");
+                return false;
             }
-
-            localStorage.setItem("carts", JSON.stringify(carts));
-
-            //sync React Context
-            setCarts(carts);
-        } else {
-            //create
-            const data = [{
-                id: bookDetail?.bookID!,
-                quantity: currentQuantity,
-                detail: bookDetail!
-            }]
-            localStorage.setItem("carts", JSON.stringify(data))
-
-            //sync React Context
-            setCarts(data);
+        } catch (error: any) {
+            console.error("Error adding book to cart:", error);
+            message.error(error.response?.data?.message || "Có lỗi xảy ra khi thêm sách vào giỏ hàng!");
         }
     };
 

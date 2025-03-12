@@ -266,3 +266,21 @@ export const deletePromotionAPI = (proID: number, username: string) => {
     const urlBackend = `/api/v1/promotions/${proID}?username=${username}`; // Đúng endpoint
     return axios.delete<IBackendRes<IPromotion>>(urlBackend);
 }
+
+// ****************************************** Cart ******************************************
+export const addBookToCartAPI = (username: string, bookID: number, quantity: number) => {
+    const urlBackend = `/api/v1/cart/add?username=${username}&bookID=${bookID}&quantity=${quantity}`; // Đúng endpoint
+    return axios.post<IBackendRes<ICart>>(urlBackend);
+}
+
+export const updateCartQuantityAPI = (username: string, bookID: number, quantity: number) => {
+    const urlBackend = `/api/v1/cart/update?username=${username}&bookID=${bookID}&quantity=${quantity}`; // Đúng endpoint
+    return axios.put<IBackendRes<ICart>>(urlBackend);
+}
+
+export const deleteBookFromCartAPI = (username: string, bookID: number) => {
+    const urlBackend = `/api/v1/cart/delete?username=${username}&bookID=${bookID}`; // Đúng endpoint
+    return axios.delete<IBackendRes<ICart>>(urlBackend);
+}
+
+

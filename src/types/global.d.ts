@@ -56,6 +56,12 @@ declare global {
         refreshToken: string;
     }
 
+    interface ICartItemDetail {
+        cartID: number;
+        quantity: number;
+        bookID: IBook;
+    }
+
     interface IUser {
         username: string,
         firstName: string,
@@ -68,7 +74,8 @@ declare global {
         address: string,
         sex: number,
         accStatus: number,
-        code: string
+        code: string,
+        cartCollection?: ICartItemDetail[]
     }
 
     interface UpdateUserRequest {

@@ -4,6 +4,7 @@ import { DeleteOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
 import { useCurrentApp } from '@/components/context/app.context';
 import '@/styles/order.scss';
+import { deleteBookFromCartAPI, fetchAccountAPI, updateCartQuantityAPI } from '@/services/api';
 
 interface IProps {
     setCurrentStep: (v: number) => void;
@@ -14,25 +15,102 @@ const OrderDetail = (props: IProps) => {
     const { carts, setCarts } = useCurrentApp();
     const [totalPrice, setTotalPrice] = useState(0);
     const { message } = App.useApp();
+    const { user } = useCurrentApp();
 
     useEffect(() => {
         const sum = carts.reduce((acc, item) => acc + (item.quantity * (item.detail?.bookPrice || 0)), 0);
         setTotalPrice(sum);
     }, [carts]);
 
-    const handleOnChangeInput = (value: number | null, book: IBook) => {
-        if (!value || value < 1) return;
-        const updatedCarts = carts.map(cart =>
-            cart.id === book.bookID ? { ...cart, quantity: value } : cart
-        );
-        localStorage.setItem("carts", JSON.stringify(updatedCarts));
-        setCarts(updatedCarts);
+    // const handleOnChangeInput = (value: number | null, book: IBook) => {
+    //     if (!value || value < 1) return;
+    //     const updatedCarts = carts.map(cart =>
+    //         cart.id === book.bookID ? { ...cart, quantity: value } : cart
+    //     );
+    //     localStorage.setItem("carts", JSON.stringify(updatedCarts));
+    //     setCarts(updatedCarts);
+    // };
+
+    const handleOnChangeInput = async (value: number, book: IBook) => {
+        if (!user) {
+            message.error("Bạn cần đăng nhập để thực hiện tính năng này.");
+            return false;
+        }
+
+        if (value < 1) {
+            message.error("Số lượng không hợp lệ!");
+            return false;
+        }
+
+        try {
+            const response = await updateCartQuantityAPI(user.username, book.bookID, value);
+
+            if (response.statusCode === 200) {
+                // Cập nhật lại giỏ hàng từ database
+                const accountRes = await fetchAccountAPI();
+
+                if (accountRes.data?.cartCollection) {
+                    const cartsFromDB = accountRes.data.cartCollection.map(item => ({
+                        id: item.bookID.bookID,
+                        quantity: item.quantity,
+                        detail: item.bookID
+                    }));
+
+                    setCarts(cartsFromDB);
+                    localStorage.setItem("carts", JSON.stringify(cartsFromDB));
+                }
+
+                message.success("Đã cập nhật số lượng!");
+                return true;
+            } else {
+                message.error(response.message || "Cập nhật số lượng thất bại!");
+                return false;
+            }
+        } catch (error: any) {
+            console.error("Error updating cart quantity:", error);
+            message.error(error.response?.data?.message || "Có lỗi xảy ra khi cập nhật số lượng!");
+            return false;
+        }
     };
 
-    const handleRemoveBook = (id: number) => {
-        const updatedCarts = carts.filter(item => item.id !== id);
-        localStorage.setItem("carts", JSON.stringify(updatedCarts));
-        setCarts(updatedCarts);
+    const handleRemoveBook = async (id: number) => {
+        if (!user) {
+            message.error("Bạn cần đăng nhập để thực hiện tính năng này.");
+            return false;
+        }
+
+        try {
+            const response = await deleteBookFromCartAPI(user.username, id);
+
+            if (response.statusCode === 200) {
+                // Cập nhật lại giỏ hàng từ database
+                const accountRes = await fetchAccountAPI();
+
+                if (accountRes.data?.cartCollection) {
+                    const cartsFromDB = accountRes.data.cartCollection.map(item => ({
+                        id: item.bookID.bookID,
+                        quantity: item.quantity,
+                        detail: item.bookID
+                    }));
+
+                    setCarts(cartsFromDB);
+                    localStorage.setItem("carts", JSON.stringify(cartsFromDB));
+                } else {
+                    setCarts([]);
+                    localStorage.setItem("carts", JSON.stringify([]));
+                }
+
+                message.success("Đã xóa sách khỏi giỏ hàng!");
+                return true;
+            } else {
+                message.error(response.message || "Xóa sách khỏi giỏ hàng thất bại!");
+                return false;
+            }
+        } catch (error: any) {
+            console.error("Error removing book from cart:", error);
+            message.error(error.response?.data?.message || "Có lỗi xảy ra khi xóa sách khỏi giỏ hàng!");
+            return false;
+        }
     };
 
     const handleNextStep = () => {
@@ -71,7 +149,7 @@ const OrderDetail = (props: IProps) => {
                                             min={1}
                                             max={99}
                                             value={item.quantity}
-                                            onChange={(value) => handleOnChangeInput(value, item.detail)}
+                                            onChange={(value) => handleOnChangeInput(value || 0, item.detail)}
                                             className="quantity-input"
                                         />
                                         <DeleteOutlined
