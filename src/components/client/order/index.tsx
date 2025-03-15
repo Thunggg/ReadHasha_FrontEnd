@@ -32,6 +32,7 @@ const OrderDetail = (props: IProps) => {
     // };
 
     const handleOnChangeInput = async (value: number, book: IBook) => {
+        console.log(">>>>>>>>>>> Ibook", book);
         if (!user) {
             message.error("Bạn cần đăng nhập để thực hiện tính năng này.");
             return false;
@@ -39,6 +40,11 @@ const OrderDetail = (props: IProps) => {
 
         if (value < 1) {
             message.error("Số lượng không hợp lệ!");
+            return false;
+        }
+
+        if (value > book.bookQuantity) {
+            message.error("Số lượng không được vượt quá số lượng tồn kho!");
             return false;
         }
 
@@ -60,7 +66,6 @@ const OrderDetail = (props: IProps) => {
                     localStorage.setItem("carts", JSON.stringify(cartsFromDB));
                 }
 
-                message.success("Đã cập nhật số lượng!");
                 return true;
             } else {
                 message.error(response.message || "Cập nhật số lượng thất bại!");
@@ -147,7 +152,7 @@ const OrderDetail = (props: IProps) => {
                                     <div className="action">
                                         <InputNumber
                                             min={1}
-                                            max={99}
+                                            max={item.detail.bookQuantity}
                                             value={item.quantity}
                                             onChange={(value) => handleOnChangeInput(value || 0, item.detail)}
                                             className="quantity-input"
