@@ -136,6 +136,8 @@ declare global {
         username: string;
         address: string;
         details: IOrderDetailRequest[];
+        promotionID?: number;
+        finalPrice?: number;
     }
 
     interface IOrderDetailRequest {

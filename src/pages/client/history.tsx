@@ -68,6 +68,7 @@ const HistoryPage = () => {
             render: (_, record) => (
                 <a
                     onClick={() => {
+                        console.log(record);
                         setOpenDetail(true);
                         setDataDetail(record);
                     }}
