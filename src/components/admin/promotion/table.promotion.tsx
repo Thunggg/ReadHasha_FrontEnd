@@ -210,7 +210,6 @@ const TablePromotion = () => {
                         const formattedStartDate = dayjs(dateRange[0]).format('YYYY-MM-DD');
                         const formattedEndDate = dayjs(dateRange[1]).format('YYYY-MM-DD');
                         query += `&startDate=${formattedStartDate}&endDate=${formattedEndDate}`;
-                        console.log(query)
                     }
 
                     // Xử lý sort: nếu có sắp xếp theo các trường cho phép

@@ -29,7 +29,6 @@ const AppHeader = (props: IProps) => {
     const fetchSuggestions = async (searchText: string) => {
         try {
             const res = await getBookAPI(`mainText=${encodeURIComponent(searchText)}&pageSize=100`);
-            console.log(">>>>>> OK", res);
             if (res?.data?.result) {
                 const books = res.data.result.map((book: IBook) => ({
                     ...book,

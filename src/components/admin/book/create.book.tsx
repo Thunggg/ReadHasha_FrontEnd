@@ -71,7 +71,6 @@ const CreateBook = (props: IProps) => {
             }
 
             const res = await createBookAPI(formData);
-            console.log(res);
             if (res.data && res.statusCode === 200) {
                 message.success('Tạo mới sách thành công');
                 form.resetFields();

@@ -18,7 +18,6 @@ const VerifyEmail = () => {
 
         try {
             const res = await verifyEmail(values.otp);
-            console.log(res);
             if (res && res.statusCode === 200) {
                 message.success("Xác thực email thành công!");
                 localStorage.clear(); // Xóa dữ liệu localStorage nếu cần

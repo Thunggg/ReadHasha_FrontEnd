@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Modal, Descriptions, Tag, Typography, Table, Button, Steps, Divider, Card, Row, Col, Avatar, Statistic } from 'antd';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DollarOutlined, ShoppingOutlined, UserOutlined, EnvironmentOutlined, CalendarOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { Modal, Descriptions, Tag, Typography, Table, Button, Steps, Card, Row, Col, Avatar, Statistic } from 'antd';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DollarOutlined, ShoppingOutlined, UserOutlined, CalendarOutlined, FilePdfOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import "./detail.order.scss"
 

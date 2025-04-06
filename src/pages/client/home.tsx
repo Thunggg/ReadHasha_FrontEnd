@@ -6,20 +6,8 @@ import {
 } from 'antd';
 import type { FormProps } from 'antd';
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useNavigate, useOutletContext } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import 'styles/home.scss';
-
-// Custom hook để delay search
-function useDebounce<T>(value: T, delay?: number): T {
-    const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-    useEffect(() => {
-        const timer = setTimeout(() => setDebouncedValue(value), delay || 500);
-        return () => clearTimeout(timer);
-    }, [value, delay]);
-
-    return debouncedValue;
-}
 
 type FieldType = {
     range: {
@@ -30,7 +18,6 @@ type FieldType = {
 };
 
 const HomePage = () => {
-    const [searchTerm] = useOutletContext() as any;
     const navigate = useNavigate();
     const [form] = Form.useForm();
 
@@ -64,7 +51,6 @@ const HomePage = () => {
             let query = `current=${current}&pageSize=${pageSize}`;
             if (filter) query += `&${filter}`;
             if (sortQuery) query += `&${sortQuery}`;
-            console.log(sortQuery);
             const res = await getBookAPI(query);
             if (res?.data) {
                 setListBook(res.data.result);

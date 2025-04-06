@@ -39,10 +39,8 @@ const BookDetail = () => {
             setLoading(true);
             try {
                 if (id) {
-                    console.log("Fetching book with ID:", id);
                     const res = await getBooksByIdAPI(id);
-                    console.log(res);
-                    console.log("Book Detail API Response:", res);
+
                     if (res && res.data) {
                         setBookDetail(res.data);
                     } else {

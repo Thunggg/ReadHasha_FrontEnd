@@ -31,8 +31,6 @@ export const AppProvider = (props: TProps) => {
 
             try {
                 const res = await fetchAccountAPI();
-                console.log(">>>> res", res);
-
                 if (res.data) {
                     // Lưu thông tin người dùng
                     setUser(res.data);

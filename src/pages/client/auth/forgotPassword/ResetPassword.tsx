@@ -28,7 +28,6 @@ const ResetPassword = () => {
                 })
             } else {
                 const res = await resetPasswordAPI(values.newPassword);
-                console.log(res)
                 if (res.statusCode === 200) {
                     message.success('Đặt lại mật khẩu thành công!');
                     localStorage.removeItem('resetEmail');

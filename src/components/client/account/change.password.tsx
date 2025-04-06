@@ -1,6 +1,5 @@
-import { useCurrentApp } from "@/components/context/app.context";
 import { App, Button, Col, Form, Input, Row, Typography } from "antd";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { FormProps } from 'antd';
 import { updatePasswordAPI } from "services/api";
 
@@ -15,7 +14,6 @@ type FieldType = {
 const ChangePassword = () => {
     const [form] = Form.useForm();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { user } = useCurrentApp();
     const { message, notification } = App.useApp();
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {

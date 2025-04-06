@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { App, Button, DatePicker, Divider, Form, Input, message, Modal, notification, Radio } from 'antd';
+import { Button, DatePicker, Form, Input, message, Modal, notification, Radio } from 'antd';
 import type { FormProps } from 'antd';
 import { updateUserAPI } from '@/services/api';
 import './update.user.scss'
@@ -57,8 +57,6 @@ const UpdateUser = (props: IProps) => {
     }, [dataUpdate])
 
     const onFinish: FormProps<FieldType>['onFinish'] = async (values) => {
-        console.log(values);
-        console.log(usernameUser)
         setIsSubmit(true);
 
         const payload = {

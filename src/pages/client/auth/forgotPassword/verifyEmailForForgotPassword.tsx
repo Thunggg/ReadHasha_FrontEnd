@@ -27,7 +27,6 @@ const VerifyEmailForgotPassword: React.FC = () => {
         setLoading(true);
         try {
             const res = await verifyEmail(values.otp);
-            console.log(res)
             if (res?.statusCode === 200) {
                 message.success("Xác thực thành công!");
                 navigate("/forgot-password/reset-password");

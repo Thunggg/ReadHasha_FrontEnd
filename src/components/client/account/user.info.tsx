@@ -55,8 +55,6 @@ const UserInfo = () => {
                 email: user!.email // Thêm email từ context
             };
 
-            console.log(values);
-
             // Gọi API đã được định nghĩa sẵn
             const res = await updateUserAPI(updateData);
 

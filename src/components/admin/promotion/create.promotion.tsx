@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { Modal, Form, Input, InputNumber, DatePicker, Select, Button, message, notification, Space, Divider, Typography, Card, Row, Col, Tooltip } from 'antd';
 import { createPromotionAPI } from '@/services/api';
 import dayjs from 'dayjs';
@@ -29,7 +29,6 @@ const CreatePromotion: React.FC<ICreatePromotionProps> = ({
     };
 
     const onFinish = async (values: any) => {
-        console.log(values);
         setLoading(true);
         try {
             // Định dạng ngày tháng

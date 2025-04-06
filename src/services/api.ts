@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "services/axios.customize";
 
 // ****************************************** AUTH ******************************************
@@ -13,7 +14,6 @@ export const registerAPI = async (registerData: any) => {
         const accessToken = response.access_token;
         if (accessToken) {
             localStorage.setItem("access_token", accessToken);
-            console.log("Access Token:", accessToken);
         }
 
     } else {
@@ -267,6 +267,13 @@ export const updatePromotionAPI = async (data: any) => {
     }
 };
 
+// Thêm API để cập nhật trạng thái đơn hàng
+// Add this function if it doesn't exist
+export const updateOrderStatusAPI = (orderId: number, status: number) => {
+    const urlBackend = `/api/v1/orders/update-status/${orderId}`;
+    return axios.put(urlBackend, { status });
+};
+
 // Sửa lại hàm deletePromotionAPI
 export const deletePromotionAPI = (proID: number, username: string) => {
     const urlBackend = `/api/v1/promotions/${proID}?username=${username}`; // Đúng endpoint
@@ -288,5 +295,13 @@ export const deleteBookFromCartAPI = (username: string, bookID: number) => {
     const urlBackend = `/api/v1/cart/delete?username=${username}&bookID=${bookID}`; // Đúng endpoint
     return axios.delete<IBackendRes<ICart>>(urlBackend);
 }
+
+// ****************************************** Payment ******************************************
+export const processVNPayCallback = (queryParams: URLSearchParams) => {
+    const urlBackend = `/api/payment/vnpay-payment-callback`;
+    return axios.get<IBackendRes<any>>(urlBackend, {
+        params: Object.fromEntries(queryParams)
+    });
+};
 
 
