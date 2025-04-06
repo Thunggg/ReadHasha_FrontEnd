@@ -54,6 +54,7 @@ const CreateUser = (props: IProps) => {
           refreshTable();
         } else {
           message.error(res.error);
+          console.log(res);
         }
       } catch (error: any) {
         message.error(

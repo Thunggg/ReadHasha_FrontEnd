@@ -28,7 +28,7 @@ const AppHeader = (props: IProps) => {
     // Hàm fetch gợi ý tìm kiếm (không giới hạn bản ghi)
     const fetchSuggestions = async (searchText: string) => {
         try {
-            const res = await getBookAPI(`mainText=${encodeURIComponent(searchText)}&pageSize=100`);
+            const res = await getBookAPI(`mainText=${encodeURIComponent(searchText)}&pageSize=100&homePage=true`);
             if (res?.data?.result) {
                 const books = res.data.result.map((book: IBook) => ({
                     ...book,

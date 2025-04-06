@@ -48,7 +48,7 @@ const HomePage = () => {
     const fetchBook = useCallback(async () => {
         setIsLoading(true);
         try {
-            let query = `current=${current}&pageSize=${pageSize}`;
+            let query = `current=${current}&pageSize=${pageSize}&homePage=true`;
             if (filter) query += `&${filter}`;
             if (sortQuery) query += `&${sortQuery}`;
             const res = await getBookAPI(query);
