@@ -228,22 +228,9 @@ const HistoryPage = () => {
                                                         </Tag>
                                                     )}
                                                 </div>
-                                                {/* <div style={{ fontWeight: 'bold', color: '#f50' }}>
-                                                    {new Intl.NumberFormat("vi-VN", {
-                                                        style: "currency",
-                                                        currency: "VND",
-                                                    }).format(item.totalPrice / item.quantity)}
-                                                </div> */}
                                                 <div>SL: {item.quantity}</div>
                                             </div>
                                             <div style={{ textAlign: 'right' }}>
-                                                {/* <div>SL: {item.quantity}</div> */}
-                                                {/* <div style={{ fontWeight: 'bold' }}>
-                                                    {new Intl.NumberFormat("vi-VN", {
-                                                        style: "currency",
-                                                        currency: "VND",
-                                                    }).format(item.totalPrice)}
-                                                </div> */}
                                             </div>
                                         </div>
                                     </div>

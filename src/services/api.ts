@@ -243,6 +243,11 @@ export const getPromotionsAPI = () => {
     return axios.get<IBackendRes<IPromotion[]>>(urlBackend);
 }
 
+export const getUsedPromotionsAPI = (username: string) => {
+    const urlBackend = `/api/v1/promotions/used/${username}`;
+    return axios.get<IBackendRes<IPromotion[]>>(urlBackend);
+}
+
 export const getPromotionPaginationAPI = (query: string) => {
     const urlBackend = `/api/v1/promotions/promotion-pagination?${query}`;
     return axios.get<IBackendRes<IModelPaginate<IPromotion>>>(urlBackend);

@@ -25,6 +25,8 @@ import {
   CreateOrderAPI,
   deleteBookFromCartAPI,
   getPromotionsAPI,
+  getUsedPromotionsAPI,
+  updatePromotionAPI,
 } from "@/services/api";
 import axios from "axios";
 
@@ -55,6 +57,7 @@ const Payment = (props: IProps) => {
   const [isSubmit, setIsSubmit] = useState(false);
   const { setCurrentStep, isBuyNow = false } = props;
   const [promotions, setPromotions] = useState<IPromotion[]>([]);
+  const [usedPromotions, setUsedPromotions] = useState<IPromotion[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedPromotion, setSelectedPromotion] = useState<IPromotion | null>(
     null
@@ -64,16 +67,23 @@ const Payment = (props: IProps) => {
   );
   const [showAllPromotions, setShowAllPromotions] = useState(false);
 
-  // Fetch promotions when component mounts
+  // Fetch promotions and used promotions when component mounts
   useEffect(() => {
     const fetchPromotions = async () => {
       setLoading(true);
       try {
-        const response = await getPromotionsAPI();
+        const [promotionsResponse, usedPromotionsResponse] = await Promise.all([
+          getPromotionsAPI(),
+          user ? getUsedPromotionsAPI(user.username) : Promise.resolve({ data: [], statusCode: 200 })
+        ]);
 
-        if (response && response.statusCode === 200 && response.data) {
-          setPromotions(response.data);
-          setFilteredPromotions(response.data);
+        if (promotionsResponse && promotionsResponse.statusCode === 200 && promotionsResponse.data) {
+          setPromotions(promotionsResponse.data);
+          setFilteredPromotions(promotionsResponse.data);
+        }
+
+        if (usedPromotionsResponse && usedPromotionsResponse.statusCode === 200 && usedPromotionsResponse.data) {
+          setUsedPromotions(usedPromotionsResponse.data);
         }
       } catch (error) {
         console.error("Error fetching promotions:", error);
@@ -83,7 +93,7 @@ const Payment = (props: IProps) => {
     };
 
     fetchPromotions();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -145,16 +155,19 @@ const Payment = (props: IProps) => {
     );
   };
 
-  // Kiểm tra xem mã giảm giá có còn hiệu lực không
+  // Kiểm tra xem mã giảm giá có còn hiệu lực không và chưa được sử dụng
   const isPromotionValid = (promotion: IPromotion) => {
     const now = new Date();
     const startDate = new Date(promotion.startDate);
     const endDate = new Date(promotion.endDate);
+    const isUsed = usedPromotions.some(used => used.proID === promotion.proID);
+
     return (
       now >= startDate &&
       now <= endDate &&
       promotion.quantity > 0 &&
-      promotion.proStatus === 1
+      promotion.proStatus === 1 &&
+      !isUsed
     );
   };
 
@@ -166,10 +179,10 @@ const Payment = (props: IProps) => {
 
   // Hiển thị số lượng mã giảm giá giới hạn khi không bấm "Xem thêm"
   const displayedPromotions = useMemo(() => {
-    const promos =
-      filteredPromotions.length > 0 ? filteredPromotions : promotions;
-    return showAllPromotions ? promos : promos.slice(0, 6);
-  }, [filteredPromotions, promotions, showAllPromotions]);
+    const promos = filteredPromotions.length > 0 ? filteredPromotions : promotions;
+    const validPromos = promos.filter(promo => isPromotionValid(promo));
+    return showAllPromotions ? validPromos : validPromos.slice(0, 6);
+  }, [filteredPromotions, promotions, showAllPromotions, usedPromotions]);
 
   const handlePlaceOrder: FormProps<FieldType>["onFinish"] = async (values) => {
     const { address, method } = values;
@@ -299,6 +312,28 @@ const Payment = (props: IProps) => {
       if (res && res.statusCode === 200) {
         message.success("Đặt hàng thành công!");
 
+        // Cập nhật số lượng mã giảm giá nếu có sử dụng
+        if (selectedPromotion) {
+          try {
+            // Giảm số lượng mã giảm giá đi 1
+            const updatedPromotion = {
+              ...selectedPromotion,
+              quantity: selectedPromotion.quantity - 1,
+              updatedBy: user.username
+            };
+
+            await updatePromotionAPI(updatedPromotion);
+
+            // Cập nhật lại danh sách mã giảm giá đã sử dụng
+            const usedPromotionsResponse = await getUsedPromotionsAPI(user.username);
+            if (usedPromotionsResponse && usedPromotionsResponse.statusCode === 200 && usedPromotionsResponse.data) {
+              setUsedPromotions(usedPromotionsResponse.data);
+            }
+          } catch (error) {
+            console.error("Error updating promotion quantity:", error);
+          }
+        }
+
         // Xóa từng sản phẩm trong giỏ hàng từ database
         if (user && !isBuyNow) {
           const deletePromises = carts.map((item) =>
@@ -357,9 +392,8 @@ const Payment = (props: IProps) => {
               <div className="order-item" key={`item-${index}`}>
                 <div className="item-content">
                   <img
-                    src={`${import.meta.env.VITE_BACKEND_URL}${
-                      item.detail.image
-                    }`}
+                    src={`${import.meta.env.VITE_BACKEND_URL}${item.detail.image
+                      }`}
                     className="product-image"
                   />
                   <div className="item-info">
@@ -441,7 +475,7 @@ const Payment = (props: IProps) => {
 
                   <div style={{ marginBottom: 16 }}>
                     <Radio.Group
-                      defaultValue="all"
+                      defaultValue="valid"
                       buttonStyle="solid"
                       onChange={(e) => {
                         const value = e.target.value;
@@ -460,7 +494,6 @@ const Payment = (props: IProps) => {
                         }
                       }}
                     >
-                      {/* <Radio.Button value="all">Tất cả</Radio.Button> */}
                       <Radio.Button value="valid" checked={true}>
                         Có hiệu lực
                       </Radio.Button>
@@ -493,8 +526,8 @@ const Payment = (props: IProps) => {
                                   borderColor: isSelected
                                     ? "#1890ff"
                                     : isValid
-                                    ? "#d9d9d9"
-                                    : "#f5f5f5",
+                                      ? "#d9d9d9"
+                                      : "#f5f5f5",
                                   backgroundColor: isValid ? "#fff" : "#f5f5f5",
                                   cursor: isValid ? "pointer" : "not-allowed",
                                   boxShadow: isSelected
@@ -585,49 +618,14 @@ const Payment = (props: IProps) => {
                       >
                         {showAllPromotions
                           ? "Thu gọn"
-                          : `Xem thêm ${
-                              filteredPromotions.length - 6
-                            } mã giảm giá`}
+                          : `Xem thêm ${filteredPromotions.length - 6
+                          } mã giảm giá`}
                       </Button>
                     </div>
                   )}
                 </div>
 
                 <Divider style={{ margin: "16px 0" }} />
-
-                {/* <div className="promo-code-input" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <Form.Item
-                                        name="promotionCode"
-                                        style={{ margin: 0, flex: 1 }}
-                                    >
-                                        <Input
-                                            placeholder="Nhập mã giảm giá"
-                                            size="large"
-                                            prefix={<TagOutlined style={{ color: '#bfbfbf' }} />}
-                                        />
-                                    </Form.Item>
-
-                                    {selectedPromotion ? (
-                                        <Button
-                                            type="default"
-                                            danger
-                                            onClick={handleRemovePromotion}
-                                            icon={<CloseCircleOutlined />}
-                                            size="large"
-                                        >
-                                            Hủy
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            type="primary"
-                                            onClick={handleApplyPromoCode}
-                                            icon={<CheckCircleOutlined />}
-                                            size="large"
-                                        >
-                                            Áp dụng
-                                        </Button>
-                                    )}
-                                </div> */}
 
                 {selectedPromotion && (
                   <div style={{ marginTop: 16 }}>
