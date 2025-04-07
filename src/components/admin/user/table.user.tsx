@@ -1,5 +1,5 @@
 // import { getUserAPI } from '@/services/api';
-import { deleteUserAPI, getUserAPI } from "@/services/api";
+import { deleteUserAPI, getUserAPI, updateUserAPI } from "@/services/api";
 import { dateRangeValidate } from "@/services/helper";
 import {
   CheckCircleOutlined,
@@ -8,6 +8,8 @@ import {
   DeleteTwoTone,
   EditTwoTone,
   PlusOutlined,
+  SyncOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import type { ActionType, ProColumns } from "@ant-design/pro-components";
 import { ProTable } from "@ant-design/pro-components";
@@ -23,6 +25,7 @@ type TSearch = {
   email: string;
   createdAt: string;
   createdAtRange: string;
+  accStatus: number;
 };
 
 const TableUser = () => {
@@ -45,6 +48,8 @@ const TableUser = () => {
   const [openModalUpdate, setOpenModalUpdate] = useState<boolean>(false);
   const [dataUpdate, setDataUpdate] = useState<IUser | null>(null);
 
+  const [isReactivatingUser, setIsReactivatingUser] = useState<boolean>(false);
+
   const refreshTable = () => {
     actionRef.current?.reload();
   };
@@ -62,6 +67,31 @@ const TableUser = () => {
       });
     }
     setIsDeleteUser(false);
+  };
+
+  const handleReactivateUser = async (username: string, email: string) => {
+    setIsReactivatingUser(true);
+    const payload = {
+      username,
+      email,
+      accStatus: 1 // Set status to active
+    };
+    const res = await updateUserAPI(payload);
+    if (res.statusCode == 200) {
+      message.success("Kích hoạt lại tài khoản thành công");
+      refreshTable();
+    } else {
+      notification.error({
+        message: "Đã có lỗi xảy ra",
+        description: res.message,
+      });
+    }
+    setIsReactivatingUser(false);
+  };
+
+  const handleEditUser = (entity: IUser) => {
+    setDataUpdate(entity);
+    setOpenModalUpdate(true);
   };
 
   const columns: ProColumns<IUser>[] = [
@@ -115,7 +145,7 @@ const TableUser = () => {
       hideInSearch: true,
     },
     {
-      title: "Khoảng ngày sinh",
+      title: "Ngày sinh",
       dataIndex: "createdAtRange",
       valueType: "dateRange",
       hideInTable: true,
@@ -123,24 +153,29 @@ const TableUser = () => {
     {
       title: "Trạng thái",
       dataIndex: "accStatus",
-      hideInSearch: true,
+      valueType: "select",
+      valueEnum: {
+        1: { text: "Hoạt động", status: "1" },
+        0: { text: "Ngừng hoạt động", status: "0" },
+        2: { text: "Chờ xác thực", status: "2" },
+      },
       render(dom, entity, index, action, schema) {
         return (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {entity.accStatus === 1 ? (
               <>
                 <CheckCircleOutlined style={{ color: "#52c41a" }} />
-                <span>Active</span>
+                <span>Hoạt động</span>
               </>
             ) : entity.accStatus === 0 ? (
               <>
                 <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
-                <span>Inactive</span>
+                <span>Ngừng hoạt động</span>
               </>
             ) : (
               <>
                 <ClockCircleOutlined style={{ color: "#faad14" }} />
-                <span>Pending</span>
+                <span>Chờ xác thực</span>
               </>
             )}
           </div>
@@ -153,30 +188,49 @@ const TableUser = () => {
       render(dom, entity, index, action, schema) {
         return (
           <>
-            <EditTwoTone
-              twoToneColor="#f57800"
-              style={{ cursor: "pointer", marginRight: 15 }}
-              onClick={() => {
-                setDataUpdate(entity);
-                setOpenModalUpdate(true);
-              }}
-            />
-            <Popconfirm
-              placement="leftTop"
-              title={"Xác nhận xóa user"}
-              description={"Bạn có chắc chắn muốn xóa user này ?"}
-              onConfirm={() => handleDeleteUser(entity.username)}
-              okText="Xác nhận"
-              cancelText="Hủy"
-              okButtonProps={{ loading: isDeleteUser }}
-            >
-              {/* <span style={{ cursor: "pointer", marginLeft: 20 }}>
-                <DeleteTwoTone
-                  twoToneColor="#ff4d4f"
-                  style={{ cursor: "pointer" }}
+            {entity.role !== 0 && (
+              <>
+                <EditTwoTone
+                  twoToneColor="#f57800"
+                  style={{ cursor: "pointer", marginRight: 15 }}
+                  onClick={() => handleEditUser(entity)}
                 />
-              </span> */}
-            </Popconfirm>
+                {entity.accStatus === 0 ? (
+                  <Popconfirm
+                    placement="leftTop"
+                    title={"Kích hoạt lại tài khoản"}
+                    description={"Bạn có chắc chắn muốn kích hoạt lại tài khoản này ?"}
+                    onConfirm={() => handleReactivateUser(entity.username, entity.email)}
+                    okText="Xác nhận"
+                    cancelText="Hủy"
+                    okButtonProps={{ loading: isReactivatingUser }}
+                  >
+                    <span style={{ cursor: "pointer", marginLeft: 20 }}>
+                      <UndoOutlined
+                        style={{ color: "#52c41a", cursor: "pointer" }}
+                      />
+                    </span>
+                  </Popconfirm>
+                ) : (
+                  <Popconfirm
+                    placement="leftTop"
+                    title={"Xác nhận xóa user"}
+                    description={"Bạn có chắc chắn muốn xóa user này ?"}
+                    onConfirm={() => handleDeleteUser(entity.username)}
+                    okText="Xác nhận"
+                    cancelText="Hủy"
+                    okButtonProps={{ loading: isDeleteUser }}
+                  >
+                    <span style={{ cursor: "pointer", marginLeft: 20 }}>
+                      <DeleteTwoTone
+                        twoToneColor="#ff4d4f"
+                        style={{ cursor: "pointer" }}
+                      />
+                    </span>
+                  </Popconfirm>
+                )}
+              </>
+            )}
           </>
         );
       },
@@ -198,6 +252,10 @@ const TableUser = () => {
             }
             if (params.userName) {
               query += `&userName=${params.userName}`;
+            }
+            if (params.accStatus) {
+              query += `&accStatus=${params.accStatus}`;
+              console.log(params.accStatus)
             }
 
             const createDateRange = dateRangeValidate(params.createdAtRange);

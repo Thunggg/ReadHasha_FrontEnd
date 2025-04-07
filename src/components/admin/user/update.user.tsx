@@ -64,9 +64,7 @@ const UpdateUser = (props: IProps) => {
             username: usernameUser,
             email: values.email,
             dob: toDate(values.dob), // Chuyển moment sang Date
-            accStatus: values.accStatus === 'active' ? 1
-                : values.accStatus === 'pending' ? 2
-                    : 0, // Giả sử 0 là inactive
+            accStatus: dataUpdate?.accStatus,
             sex: parseInt(values.sex) // Chuyển string sang number
         };
 
@@ -243,7 +241,7 @@ const UpdateUser = (props: IProps) => {
                                     </Radio.Group>
                                 </Form.Item>
 
-                                <Form.Item<FieldType>
+                                {/* <Form.Item<FieldType>
                                     name="accStatus"
                                     label="Trạng thái tài khoản"
                                     rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
@@ -268,7 +266,7 @@ const UpdateUser = (props: IProps) => {
                                             </div>
                                         </Radio.Button>
                                     </Radio.Group>
-                                </Form.Item>
+                                </Form.Item> */}
 
                                 <Form.Item<FieldType>
                                     label="Địa chỉ"

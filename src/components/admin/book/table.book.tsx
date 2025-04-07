@@ -205,14 +205,12 @@ const TableBook = () => {
 
           // Xử lý sort Price và Quantity
           if (sort.bookPrice) {
-            query += `&sort=${
-              sort.bookPrice === "ascend" ? "bookPrice" : "-bookPrice"
-            }`;
+            query += `&sort=${sort.bookPrice === "ascend" ? "bookPrice" : "-bookPrice"
+              }`;
           }
           if (sort.bookQuantity) {
-            query += `&sort=${
-              sort.bookQuantity === "ascend" ? "bookQuantity" : "-bookQuantity"
-            }`;
+            query += `&sort=${sort.bookQuantity === "ascend" ? "bookQuantity" : "-bookQuantity"
+              }`;
           }
 
           const res = await getBookAPI(query);
