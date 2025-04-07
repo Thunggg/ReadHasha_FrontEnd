@@ -11,6 +11,7 @@ const HistoryPage = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [openDetail, setOpenDetail] = useState<boolean>(false);
     const [dataDetail, setDataDetail] = useState<IHistory | null>(null);
+    const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
     const { notification } = App.useApp();
     const { user } = useCurrentApp();
 
@@ -20,7 +21,10 @@ const HistoryPage = () => {
             title: 'STT',
             dataIndex: 'index',
             key: 'index',
-            render: (_, __, index) => <span>{index + 1}</span>,
+            render: (_, __, index) => {
+                // Calculate actual index based on current page and page size
+                return <span>{(pagination.current - 1) * pagination.pageSize + index + 1}</span>;
+            },
         },
         {
             title: 'Thời gian',
@@ -45,17 +49,34 @@ const HistoryPage = () => {
             title: 'Trạng thái',
             key: 'orderStatus',
             filters: [
-                { text: "Đã đặt hàng", value: 1 },
-                { text: "Đã thanh toán", value: 2 },
+                { text: "Đã hủy", value: 0 },
+                { text: "Chờ xác nhận", value: 1 },
+                { text: "Đã xác nhận", value: 2 },
             ],
             onFilter: (value, record) => record.orderStatus === value,
             render: (_, record) => {
-                const statusText = record.orderStatus === 1
-                    ? "Đã đặt hàng"
-                    : record.orderStatus === 2
-                        ? "Đã thanh toán"
-                        : "Khác";
-                return <Tag color={record.orderStatus === 1 ? "volcano" : "green"}>{statusText}</Tag>;
+                let statusText = "";
+                let color = "";
+
+                switch (record.orderStatus) {
+                    case 0:
+                        statusText = "Đã hủy";
+                        color = "error";
+                        break;
+                    case 1:
+                        statusText = "Chờ xác nhận";
+                        color = "warning";
+                        break;
+                    case 2:
+                        statusText = "Đã xác nhận";
+                        color = "success";
+                        break;
+                    default:
+                        statusText = "Không xác định";
+                        color = "default";
+                }
+
+                return <Tag color={color}>{statusText}</Tag>;
             },
         },
         {
@@ -115,25 +136,39 @@ const HistoryPage = () => {
 
     return (
         <div style={{ margin: 50 }}>
-            <h3>Lịch sử mua hàng</h3>
-            <Button type="primary" onClick={fetchData} style={{ marginBottom: 16 }}>
-                Refresh
-            </Button>
-            <Divider />
             <Table
                 bordered
                 columns={columns}
                 dataSource={dataHistory}
                 rowKey={"orderID"}
                 loading={loading}
-                pagination={{ pageSize: 10 }}
+                pagination={{
+                    pageSize: pagination.pageSize,
+                    current: pagination.current,
+                    onChange: (page, pageSize) => {
+                        setPagination({ current: page, pageSize: pageSize || 10 });
+                    }
+                }}
                 locale={{
                     emptyText: <Empty description="Không có đơn hàng nào" />,
                 }}
             />
             <Drawer
-                title="Chi tiết đơn hàng"
-                width={400}
+                title={
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>Chi tiết đơn hàng {dataDetail?.orderID ? `#${dataDetail.orderID}` : ''}</span>
+                        {dataDetail?.orderStatus !== undefined && (
+                            <Tag color={
+                                dataDetail.orderStatus === 0 ? "error" :
+                                    dataDetail.orderStatus === 1 ? "warning" : "success"
+                            }>
+                                {dataDetail.orderStatus === 0 ? "Đã hủy" :
+                                    dataDetail.orderStatus === 1 ? "Chờ xác nhận" : "Đã xác nhận"}
+                            </Tag>
+                        )}
+                    </div>
+                }
+                width={500}
                 onClose={() => {
                     setOpenDetail(false);
                     setDataDetail(null);
@@ -141,26 +176,156 @@ const HistoryPage = () => {
                 open={openDetail}
             >
                 {dataDetail?.orderDetailList?.length ? (
-                    dataDetail.orderDetailList.map((item: any, index: number) => (
-                        <Card key={index} style={{ marginBottom: 16 }}>
-                            <img
-                                src={"http://localhost:8080" + item.bookID.image}
-                                alt={item.bookID.bookTitle}
-                                style={{ width: "100%", maxHeight: 150, objectFit: "contain", marginBottom: 10 }}
-                            />
-                            <Descriptions column={1} size="small">
-                                <Descriptions.Item label="Tên sách">{item.bookID.bookTitle}</Descriptions.Item>
-                                <Descriptions.Item label="Tác giả">{item.bookID.author}</Descriptions.Item>
-                                <Descriptions.Item label="Số lượng">{item.quantity}</Descriptions.Item>
-                                <Descriptions.Item label="Giá">
-                                    {new Intl.NumberFormat("vi-VN", {
-                                        style: "currency",
-                                        currency: "VND",
-                                    }).format(item.bookID.bookPrice)}
+                    <>
+                        <Card style={{ marginBottom: 16 }}>
+                            <Descriptions column={1} size="small" title="Thông tin đơn hàng">
+                                <Descriptions.Item label="Ngày đặt">
+                                    {dataDetail.orderDate ? dayjs(dataDetail.orderDate).format(FORMATE_DATE_VN) : "N/A"}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Địa chỉ giao hàng">
+                                    {dataDetail.orderAddress || "N/A"}
                                 </Descriptions.Item>
                             </Descriptions>
                         </Card>
-                    ))
+
+                        <h4 style={{ margin: '16px 0 8px 0' }}>Danh sách sản phẩm</h4>
+
+                        {dataDetail.orderDetailList.map((item: any, index: number) => (
+                            <Card
+                                key={index}
+                                style={{
+                                    marginBottom: 16,
+                                    boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                                }}
+                            >
+                                <div style={{ display: 'flex' }}>
+                                    <div style={{ width: '35%', padding: '0 10px 0 0' }}>
+                                        <img
+                                            src={"http://localhost:8080" + item.bookID.image}
+                                            alt={item.bookID.bookTitle}
+                                            style={{
+                                                width: "100%",
+                                                maxHeight: 120,
+                                                objectFit: "contain"
+                                            }}
+                                        />
+                                    </div>
+                                    <div style={{ width: '65%' }}>
+                                        <h4 style={{ margin: '0 0 8px 0' }}>{item.bookID.bookTitle}</h4>
+                                        <p style={{ color: '#666', margin: '0 0 5px 0' }}>Tác giả: {item.bookID.author}</p>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <div>
+                                                    <span style={{ color: '#999', textDecoration: item.discountAtPurchase > 0 ? 'line-through' : 'none' }}>
+                                                        {new Intl.NumberFormat("vi-VN", {
+                                                            style: "currency",
+                                                            currency: "VND",
+                                                        }).format(item.bookID.bookPrice)}
+                                                    </span>
+                                                    {item.discountAtPurchase > 0 && (
+                                                        <Tag color="green" style={{ marginLeft: 8 }}>
+                                                            -{item.discountAtPurchase}%
+                                                        </Tag>
+                                                    )}
+                                                </div>
+                                                {/* <div style={{ fontWeight: 'bold', color: '#f50' }}>
+                                                    {new Intl.NumberFormat("vi-VN", {
+                                                        style: "currency",
+                                                        currency: "VND",
+                                                    }).format(item.totalPrice / item.quantity)}
+                                                </div> */}
+                                                <div>SL: {item.quantity}</div>
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                {/* <div>SL: {item.quantity}</div> */}
+                                                {/* <div style={{ fontWeight: 'bold' }}>
+                                                    {new Intl.NumberFormat("vi-VN", {
+                                                        style: "currency",
+                                                        currency: "VND",
+                                                    }).format(item.totalPrice)}
+                                                </div> */}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                        <Divider />
+                        <Card
+                            style={{
+                                marginTop: 16,
+                                backgroundColor: '#f9f9f9',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                            }}
+                        >
+                            <h4 style={{ margin: '0 0 16px 0', borderBottom: '1px solid #eee', paddingBottom: 8 }}>
+                                Thông tin thanh toán
+                            </h4>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', margin: '8px 0' }}>
+                                <span>Tổng tiền hàng:</span>
+                                <span>
+                                    {new Intl.NumberFormat("vi-VN", {
+                                        style: "currency",
+                                        currency: "VND",
+                                    }).format(dataDetail.orderDetailList.reduce((acc: number, item: any) =>
+                                        acc + (item.bookID.bookPrice * item.quantity), 0))}
+                                </span>
+                            </div>
+
+                            {/* Display promo code if it exists in the data */}
+                            {dataDetail && (dataDetail as any).promoCode && (
+                                <div style={{ display: 'flex', justifyContent: 'space-between', margin: '8px 0' }}>
+                                    <span>Mã giảm giá:</span>
+                                    <Tag color="blue">{(dataDetail as any).promoCode}</Tag>
+                                </div>
+                            )}
+
+                            {/* Display discount if there's a difference between original and final prices */}
+                            {(() => {
+                                const originalTotal = dataDetail.orderDetailList.reduce((acc: number, item: any) =>
+                                    acc + (item.bookID.bookPrice * item.quantity), 0);
+                                const finalTotal = dataDetail.orderDetailList.reduce((acc: number, item: any) =>
+                                    acc + item.totalPrice, 0);
+
+                                if (originalTotal > finalTotal) {
+                                    const savedAmount = originalTotal - finalTotal;
+                                    const discountPercent = Math.round((savedAmount / originalTotal) * 100);
+
+                                    return (
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', margin: '8px 0', color: '#52c41a' }}>
+                                            <span>Tiết kiệm:</span>
+                                            <span>
+                                                -{new Intl.NumberFormat("vi-VN", {
+                                                    style: "currency",
+                                                    currency: "VND",
+                                                }).format(savedAmount)} ({discountPercent}%)
+                                            </span>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+
+                            <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                margin: '16px 0 8px',
+                                fontWeight: 'bold',
+                                fontSize: '16px',
+                                borderTop: '1px solid #eee',
+                                paddingTop: 16
+                            }}>
+                                <span>Tổng thanh toán:</span>
+                                <span style={{ color: '#f50' }}>
+                                    {new Intl.NumberFormat("vi-VN", {
+                                        style: "currency",
+                                        currency: "VND",
+                                    }).format(dataDetail.orderDetailList.reduce((acc: number, item: any) =>
+                                        acc + item.totalPrice, 0))}
+                                </span>
+                            </div>
+                        </Card>
+                    </>
                 ) : (
                     <Empty description="Không có chi tiết đơn hàng" />
                 )}
