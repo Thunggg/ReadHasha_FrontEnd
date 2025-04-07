@@ -268,10 +268,15 @@ export const updatePromotionAPI = async (data: any) => {
 };
 
 // Thêm API để cập nhật trạng thái đơn hàng
-// Add this function if it doesn't exist
 export const updateOrderStatusAPI = (orderId: number, status: number) => {
     const urlBackend = `/api/v1/orders/update-status/${orderId}`;
     return axios.put(urlBackend, { status });
+};
+
+// API để admin xác nhận đơn hàng
+export const approveOrderAPI = (orderId: number, username: string) => {
+    const urlBackend = `/api/v1/orders/${orderId}/approve?username=${username}`;
+    return axios.patch<IBackendRes<IOrder>>(urlBackend);
 };
 
 // Sửa lại hàm deletePromotionAPI

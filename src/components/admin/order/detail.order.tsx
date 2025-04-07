@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Modal, Descriptions, Tag, Typography, Table, Button, Steps, Card, Row, Col, Avatar, Statistic } from 'antd';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DollarOutlined, ShoppingOutlined, UserOutlined, CalendarOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { Modal, Descriptions, Tag, Typography, Table, Button, Steps, Card, Row, Col, Avatar, Statistic, message } from 'antd';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, DollarOutlined, ShoppingOutlined, UserOutlined, CalendarOutlined, FilePdfOutlined, TagOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import "./detail.order.scss"
+import { approveOrderAPI } from '@/services/api';
+import { useCurrentApp } from '@/components/context/app.context';
 
 const { Title, Text } = Typography;
 const { Step } = Steps;
@@ -11,23 +13,25 @@ interface IDetailOrderProps {
     openViewDetail: boolean;
     setOpenViewDetail: (value: boolean) => void;
     dataViewDetail: IOrder | null;
+    reloadTable?: () => void;
 }
 
 // Mapping trạng thái đơn hàng
 const orderStatusMap = {
     0: { text: 'Đã hủy', color: 'error', icon: <CloseCircleOutlined /> },
     1: { text: 'Chờ xác nhận', color: 'warning', icon: <ClockCircleOutlined /> },
-    2: { text: 'Đang xử lý', color: 'processing', icon: <ClockCircleOutlined /> },
-    3: { text: 'Đang giao hàng', color: 'processing', icon: <ClockCircleOutlined /> },
-    4: { text: 'Đã giao hàng', color: 'success', icon: <CheckCircleOutlined /> },
+    2: { text: 'Đã xác nhận', color: 'success', icon: <CheckCircleOutlined /> },
 };
 
 const DetailOrder: React.FC<IDetailOrderProps> = ({
     openViewDetail,
     setOpenViewDetail,
     dataViewDetail,
+    reloadTable
 }) => {
     const [loading, setLoading] = useState<boolean>(false);
+    const [confirmLoading, setConfirmLoading] = useState<boolean>(false);
+    const { user } = useCurrentApp();
 
     if (!dataViewDetail) return null;
 
@@ -36,14 +40,28 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
         return orderDetails.reduce((total, item) => total + item.totalPrice, 0);
     };
 
+    // Tính tổng tiền gốc trước khi áp dụng giảm giá
+    const calculateOriginalTotal = (orderDetails: IOrderDetail[]): number => {
+        return orderDetails.reduce((total, item) => total + (item.bookID.bookPrice * item.quantity), 0);
+    };
+
+    // Tính phần trăm giảm giá dựa vào giá gốc và giá cuối cùng
+    const calculateDiscountPercentage = (): number => {
+        const originalTotal = calculateOriginalTotal(dataViewDetail.orderDetailList);
+        const finalTotal = calculateOrderTotal(dataViewDetail.orderDetailList);
+
+        if (originalTotal === 0 || originalTotal === finalTotal) return 0;
+
+        const discountPercent = ((originalTotal - finalTotal) / originalTotal) * 100;
+        return Math.round(discountPercent * 10) / 10; // Round to 1 decimal place
+    };
+
     // Tính toán các bước trong quy trình đơn hàng
     const getCurrentStep = (status: number) => {
         switch (status) {
             case 0: return -1; // Đã hủy
             case 1: return 0;  // Chờ xác nhận
-            case 2: return 1;  // Đang xử lý
-            case 3: return 2;  // Đang giao hàng
-            case 4: return 3;  // Đã giao hàng
+            case 2: return 1;  // Đã xác nhận
             default: return 0;
         }
     };
@@ -57,6 +75,35 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
             console.log('Exporting PDF for order:', dataViewDetail.orderID);
             setLoading(false);
         }, 1000);
+    };
+
+    // Xử lý cập nhật trạng thái đơn hàng
+    const handleConfirmOrder = async () => {
+        if (!dataViewDetail || !user || !user.username) {
+            message.error('Bạn cần đăng nhập để thực hiện thao tác này');
+            return;
+        }
+
+        setConfirmLoading(true);
+        try {
+            // Gọi API để admin xác nhận đơn hàng
+            const res = await approveOrderAPI(dataViewDetail.orderID, user.username);
+
+            if (res.statusCode === 200) {
+                message.success('Đã xác nhận đơn hàng thành công!');
+                // Đóng modal chi tiết đơn hàng
+                setOpenViewDetail(false);
+                // Reload lại bảng đơn hàng
+                if (reloadTable) reloadTable();
+            } else {
+                message.error('Có lỗi xảy ra khi xác nhận đơn hàng: ' + res.message);
+            }
+        } catch (error) {
+            console.error('Error confirming order:', error);
+            message.error('Không thể kết nối đến server hoặc có lỗi xảy ra');
+        } finally {
+            setConfirmLoading(false);
+        }
     };
 
     const columns = [
@@ -101,6 +148,29 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
             align: 'center' as 'center',
         },
         {
+            title: 'Giảm giá',
+            key: 'discount',
+            align: 'center' as 'center',
+            render: (_: any, record: IOrderDetail) => {
+                // Calculate discount for this item
+                const originalPrice = record.bookID.bookPrice * record.quantity;
+                const finalPrice = record.totalPrice;
+
+                if (originalPrice > finalPrice) {
+                    const discountPercent = ((originalPrice - finalPrice) / originalPrice) * 100;
+                    const roundedDiscount = Math.round(discountPercent * 10) / 10;
+
+                    return (
+                        <Tag color="green" style={{ fontSize: 12 }}>
+                            {roundedDiscount}%
+                        </Tag>
+                    );
+                }
+
+                return <Text type="secondary">-</Text>;
+            }
+        },
+        {
             title: 'Thành tiền',
             dataIndex: 'totalPrice',
             key: 'totalPrice',
@@ -126,31 +196,33 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
             }
             open={openViewDetail}
             onCancel={() => setOpenViewDetail(false)}
-            width={1100} // Giảm width xuống một chút
+            width={1200} // Tăng width để rộng hơn
             centered
             footer={[
                 <Button key="close" onClick={() => setOpenViewDetail(false)}>
                     Đóng
                 </Button>,
-                <Button
-                    key="export"
-                    type="primary"
-                    icon={<FilePdfOutlined />}
-                    loading={loading}
-                    onClick={handleExportPDF}
-                >
-                    Xuất hóa đơn
-                </Button>,
+                dataViewDetail.orderStatus === 1 && (
+                    <Button
+                        key="confirm"
+                        type="primary"
+                        icon={<CheckCircleOutlined />}
+                        loading={confirmLoading}
+                        onClick={handleConfirmOrder}
+                    >
+                        Xác nhận đơn hàng
+                    </Button>
+                )
             ]}
             bodyStyle={{
-                padding: '16px', // Giảm padding
-                maxHeight: '75vh', // Giảm chiều cao tối đa
+                padding: '16px',
+                maxHeight: '80vh', // Tăng chiều cao tối đa
                 overflowY: 'auto',
                 backgroundColor: '#f5f7fa'
             }}
             style={{ top: 20 }}
         >
-            <Row gutter={[16, 16]}> {/* Giảm gutter */}
+            <Row gutter={[20, 20]}> {/* Tăng gutter */}
                 <Col span={24}>
                     <Card
                         bordered={false}
@@ -169,9 +241,7 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
                             size="small"
                         >
                             <Step title={<span style={{ fontSize: 14 }}>Đặt hàng</span>} description={<span style={{ fontSize: 12 }}>Chờ xác nhận</span>} />
-                            <Step title={<span style={{ fontSize: 14 }}>Xác nhận</span>} description={<span style={{ fontSize: 12 }}>Đang xử lý</span>} />
-                            <Step title={<span style={{ fontSize: 14 }}>Vận chuyển</span>} description={<span style={{ fontSize: 12 }}>Đang giao hàng</span>} />
-                            <Step title={<span style={{ fontSize: 14 }}>Hoàn thành</span>} description={<span style={{ fontSize: 12 }}>Đã giao hàng</span>} />
+                            <Step title={<span style={{ fontSize: 14 }}>Xác nhận</span>} description={<span style={{ fontSize: 12 }}>Đã xác nhận</span>} />
                         </Steps>
                         {dataViewDetail.orderStatus === 0 && (
                             <div style={{ marginTop: 12, textAlign: 'center' }}>
@@ -217,7 +287,7 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
 
                                     return (
                                         <>
-                                            <Table.Summary.Row>
+                                            {/* <Table.Summary.Row>
                                                 <Table.Summary.Cell index={0} colSpan={3}>
                                                     <Text strong style={{ fontSize: 14, paddingLeft: 16 }}>Tổng cộng</Text>
                                                 </Table.Summary.Cell>
@@ -226,7 +296,7 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
                                                         {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}
                                                     </Text>
                                                 </Table.Summary.Cell>
-                                            </Table.Summary.Row>
+                                            </Table.Summary.Row> */}
                                         </>
                                     );
                                 }}
@@ -294,6 +364,25 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
                         }}
                         bodyStyle={{ padding: '12px' }} // Giảm padding
                     >
+                        {dataViewDetail.promotionCode && (
+                            <div style={{ marginBottom: 16 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
+                                    <TagOutlined style={{ color: '#1890ff', marginRight: 8 }} />
+                                    <Text strong style={{ fontSize: 14 }}>Mã giảm giá:</Text>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', marginLeft: 24 }}>
+                                    <Tag color="blue" style={{ padding: '2px 8px', fontSize: 13 }}>
+                                        {dataViewDetail.promotionCode}
+                                    </Tag>
+                                    {calculateDiscountPercentage() > 0 && (
+                                        <Text type="secondary" style={{ marginLeft: 8, fontSize: 13 }}>
+                                            ({calculateDiscountPercentage()}% giảm giá)
+                                        </Text>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         <Statistic
                             title={<span style={{ fontSize: 14, fontWeight: 'bold' }}>Tổng tiền đơn hàng</span>}
                             value={calculateOrderTotal(dataViewDetail.orderDetailList)}
@@ -305,6 +394,16 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
                             }
                             style={{ padding: '8px 0' }}
                         />
+
+                        {calculateDiscountPercentage() > 0 && (
+                            <div style={{ fontSize: 13, color: '#52c41a', marginTop: 4 }}>
+                                <Text type="secondary">
+                                    Đã giảm: {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(
+                                        calculateOriginalTotal(dataViewDetail.orderDetailList) - calculateOrderTotal(dataViewDetail.orderDetailList)
+                                    )}
+                                </Text>
+                            </div>
+                        )}
                     </Card>
 
                     <Card

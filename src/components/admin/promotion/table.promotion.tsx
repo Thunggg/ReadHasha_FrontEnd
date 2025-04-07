@@ -1,6 +1,6 @@
-import { deletePromotionAPI, getPromotionPaginationAPI } from '@/services/api';
+import { deletePromotionAPI, getPromotionPaginationAPI, updatePromotionAPI } from '@/services/api';
 import { dateRangeValidate } from '@/services/helper';
-import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseCircleOutlined, DeleteOutlined, EditOutlined, PlusOutlined, UndoOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { Button, message, notification, Popconfirm } from 'antd';
@@ -33,6 +33,7 @@ const TablePromotion = () => {
     const [openModalCreate, setOpenModalCreate] = useState<boolean>(false);
 
     const [isDeletePromotion, setIsDeletePromotion] = useState<boolean>(false);
+    const [isReactivatingPromotion, setIsReactivatingPromotion] = useState<boolean>(false);
 
     const [openModalUpdate, setOpenModalUpdate] = useState<boolean>(false);
     const [dataUpdate, setDataUpdate] = useState<any>(null);
@@ -67,6 +68,46 @@ const TablePromotion = () => {
         } finally {
             setIsDeletePromotion(false);
         }
+    };
+
+    const handleReactivatePromotion = async (promotion: any) => {
+        setIsReactivatingPromotion(true);
+        try {
+            const promotionData = {
+                proID: promotion.proID,
+                proName: promotion.proName,
+                discount: promotion.discount,
+                startDate: dayjs(promotion.startDate).format('YYYY-MM-DD'),
+                endDate: dayjs(promotion.endDate).format('YYYY-MM-DD'),
+                quantity: promotion.quantity,
+                proStatus: 1, // Set to active
+                updatedBy: user?.username
+            };
+
+            const res = await updatePromotionAPI(promotionData);
+
+            if (res.statusCode === 200) {
+                message.success('Kích hoạt lại khuyến mãi thành công!');
+                actionRef.current?.reload();
+            } else {
+                notification.error({
+                    message: 'Đã có lỗi xảy ra',
+                    description: res.message,
+                });
+            }
+        } catch (error: any) {
+            notification.error({
+                message: 'Đã có lỗi xảy ra',
+                description: error.message || 'Không thể kích hoạt khuyến mãi',
+            });
+        } finally {
+            setIsReactivatingPromotion(false);
+        }
+    };
+
+    const handleEditPromotion = (entity: any) => {
+        setOpenModalUpdate(true);
+        setDataUpdate(entity);
     };
 
     const columns: ProColumns<any>[] = [
@@ -168,22 +209,33 @@ const TablePromotion = () => {
                 <>
                     <EditOutlined
                         style={{ cursor: 'pointer', marginRight: 15, color: '#f57800' }}
-                        onClick={() => {
-                            setOpenModalUpdate(true);
-                            setDataUpdate(entity);
-                        }}
+                        onClick={() => handleEditPromotion(entity)}
                     />
-                    <Popconfirm
-                        placement="leftTop"
-                        title="Xác nhận xóa khuyến mãi"
-                        description="Bạn có chắc chắn muốn xóa khuyến mãi này?"
-                        onConfirm={() => handleDeletePromotion(entity.proID)}
-                        okText="Xác nhận "
-                        cancelText="Hủy"
-                        okButtonProps={{ loading: isDeletePromotion }}
-                    >
-                        <DeleteOutlined style={{ cursor: 'pointer', color: '#ff4d4f' }} />
-                    </Popconfirm>
+                    {entity.proStatus === 0 ? (
+                        <Popconfirm
+                            placement="leftTop"
+                            title="Kích hoạt lại khuyến mãi"
+                            description="Bạn có chắc chắn muốn kích hoạt lại khuyến mãi này?"
+                            onConfirm={() => handleReactivatePromotion(entity)}
+                            okText="Xác nhận"
+                            cancelText="Hủy"
+                            okButtonProps={{ loading: isReactivatingPromotion }}
+                        >
+                            <UndoOutlined style={{ cursor: 'pointer', color: '#52c41a' }} />
+                        </Popconfirm>
+                    ) : (
+                        <Popconfirm
+                            placement="leftTop"
+                            title="Xác nhận xóa khuyến mãi"
+                            description="Bạn có chắc chắn muốn xóa khuyến mãi này?"
+                            onConfirm={() => handleDeletePromotion(entity.proID)}
+                            okText="Xác nhận"
+                            cancelText="Hủy"
+                            okButtonProps={{ loading: isDeletePromotion }}
+                        >
+                            <DeleteOutlined style={{ cursor: 'pointer', color: '#ff4d4f' }} />
+                        </Popconfirm>
+                    )}
                 </>
             ),
         },

@@ -218,5 +218,6 @@ declare global {
         orderDetailList: IOrderDetail[];
         orderAddress: string;
         customerName: string;
+        promotionCode: string;
     }
 }

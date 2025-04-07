@@ -82,7 +82,7 @@ const EditCategory: React.FC<EditCategoryProps> = ({
                 >
                     <Input.TextArea placeholder="Nhập mô tả danh mục" />
                 </Form.Item>
-                <Form.Item
+                {/* <Form.Item
                     label="Trạng thái"
                     name="catStatus"
                     rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
@@ -91,7 +91,7 @@ const EditCategory: React.FC<EditCategoryProps> = ({
                         <Select.Option value={1}>Active</Select.Option>
                         <Select.Option value={0}>Inactive</Select.Option>
                     </Select>
-                </Form.Item>
+                </Form.Item> */}
             </Form>
         </Modal>
     );

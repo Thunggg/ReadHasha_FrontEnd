@@ -3,10 +3,11 @@ import { dateRangeValidate } from '@/services/helper';
 import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, FilePdfOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Tag, Tooltip, Space, Typography, Avatar } from 'antd';
+import { Button, Tag, Tooltip, Space, Typography, Avatar, message } from 'antd';
 import dayjs from 'dayjs';
-import { getOrderPaginationAPI } from '@/services/api';
+import { getOrderPaginationAPI, approveOrderAPI } from '@/services/api';
 import DetailOrder from './detail.order';
+import { useCurrentApp } from '@/components/context/app.context';
 // import DetailOrder from './detail.order';
 
 const { Text } = Typography;
@@ -22,9 +23,7 @@ type TSearch = {
 const orderStatusMap = {
     0: { text: 'Đã hủy', color: 'error', icon: <CloseCircleOutlined /> },
     1: { text: 'Chờ xác nhận', color: 'warning', icon: <ClockCircleOutlined /> },
-    2: { text: 'Đang xử lý', color: 'processing', icon: <ClockCircleOutlined /> },
-    3: { text: 'Đang giao hàng', color: 'processing', icon: <ClockCircleOutlined /> },
-    4: { text: 'Đã giao hàng', color: 'success', icon: <CheckCircleOutlined /> },
+    2: { text: 'Đã xác nhận', color: 'success', icon: <CheckCircleOutlined /> },
 };
 
 const TableOrder: React.FC = () => {
@@ -38,6 +37,8 @@ const TableOrder: React.FC = () => {
 
     const [openViewDetail, setOpenViewDetail] = useState<boolean>(false);
     const [dataViewDetail, setDataViewDetail] = useState<IOrder | null>(null);
+    const [confirmingOrderId, setConfirmingOrderId] = useState<number | null>(null);
+    const { user } = useCurrentApp();
 
     // Tính tổng tiền của đơn hàng
     const calculateOrderTotal = (orderDetails: IOrderDetail[]): number => {
@@ -55,6 +56,30 @@ const TableOrder: React.FC = () => {
             };
         }
         return { title: 'Không có sản phẩm', image: '', quantity: 0, moreItems: 0 };
+    };
+
+    // Add function to handle order confirmation
+    const handleConfirmOrder = async (orderId: number) => {
+        if (!user || !user.username) {
+            message.error('Bạn cần đăng nhập để thực hiện thao tác này');
+            return;
+        }
+
+        setConfirmingOrderId(orderId);
+        try {
+            const res = await approveOrderAPI(orderId, user.username);
+            if (res.statusCode === 200) {
+                message.success('Đã xác nhận đơn hàng thành công!');
+                actionRef.current?.reload();
+            } else {
+                message.error('Có lỗi xảy ra khi xác nhận đơn hàng: ' + res.message);
+            }
+        } catch (error) {
+            console.error('Error confirming order:', error);
+            message.error('Không thể kết nối đến server hoặc có lỗi xảy ra');
+        } finally {
+            setConfirmingOrderId(null);
+        }
     };
 
     const columns: ProColumns<IOrder>[] = [
@@ -154,9 +179,7 @@ const TableOrder: React.FC = () => {
             valueEnum: {
                 0: { text: 'Đã hủy', status: 'Error' },
                 1: { text: 'Chờ xác nhận', status: 'Warning' },
-                2: { text: 'Đang xử lý', status: 'Processing' },
-                3: { text: 'Đang giao hàng', status: 'Processing' },
-                4: { text: 'Đã giao hàng', status: 'Success' },
+                2: { text: 'Đã xác nhận', status: 'Success' },
             },
             render: (_, record) => {
                 const status = orderStatusMap[record.orderStatus as keyof typeof orderStatusMap];
@@ -183,16 +206,19 @@ const TableOrder: React.FC = () => {
                         }}
                     />
                 </Tooltip>,
-                <Tooltip title="Xuất hóa đơn PDF" key="pdf">
-                    <Button
-                        type="link"
-                        icon={<FilePdfOutlined />}
-                        onClick={() => {
-                            // Xử lý xuất PDF
-                            console.log('Export PDF for order:', record.orderID);
-                        }}
-                    />
-                </Tooltip>,
+                record.orderStatus === 1 ? (
+                    <Tooltip title="Xác nhận đơn hàng" key="confirm">
+                        <Button
+                            type="link"
+                            icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                            loading={confirmingOrderId === record.orderID}
+                            onClick={() => handleConfirmOrder(record.orderID)}
+                        />
+                    </Tooltip>
+                ) : (
+                    <>
+                    </>
+                ),
             ],
         },
     ];
@@ -298,6 +324,7 @@ const TableOrder: React.FC = () => {
                 openViewDetail={openViewDetail}
                 setOpenViewDetail={setOpenViewDetail}
                 dataViewDetail={dataViewDetail}
+                reloadTable={() => actionRef.current?.reload()}
             />
         </>
     );
