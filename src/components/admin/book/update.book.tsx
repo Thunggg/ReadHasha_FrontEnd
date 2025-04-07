@@ -292,7 +292,7 @@ const EditBook = (props: IProps) => {
                                     />
                                 </Form.Item>
 
-                                <Form.Item<BookFormType>
+                                {/* <Form.Item<BookFormType>
                                     label={<span style={{ fontWeight: 500 }}>Trạng thái</span>}
                                     name="bookStatus"
                                     rules={[{ required: true }]}
@@ -304,7 +304,7 @@ const EditBook = (props: IProps) => {
                                             { value: 0, label: 'Hết hàng' },
                                         ]}
                                     />
-                                </Form.Item>
+                                </Form.Item> */}
                             </div>
 
                             <div style={{

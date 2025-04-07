@@ -3,6 +3,7 @@ import {
   getBookAPI,
   getCategoryAPI,
   getUserAPI,
+  updateBookAPI,
 } from "@/services/api";
 import {
   CheckCircleOutlined,
@@ -11,6 +12,7 @@ import {
   DeleteTwoTone,
   EditOutlined,
   PlusOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import type { ActionType, ProColumns } from "@ant-design/pro-components";
 import { ProTable } from "@ant-design/pro-components";
@@ -48,6 +50,7 @@ const TableBook = () => {
   const [categoryData, setCategoryData] = useState<ICategory[]>([]);
 
   const [isDeleteBook, setIsDeleteBook] = useState<boolean>(false);
+  const [isReactivatingBook, setIsReactivatingBook] = useState<boolean>(false);
 
   const [openModalUpdate, setOpenModalUpdate] = useState<boolean>(false);
   const [dataUpdate, setDataUpdate] = useState<IBook | null>(null);
@@ -65,6 +68,54 @@ const TableBook = () => {
       });
     }
     setIsDeleteBook(false);
+  };
+
+  const handleReactivateBook = async (book: IBook) => {
+    setIsReactivatingBook(true);
+    try {
+      const formData = new FormData();
+
+      // Create updated book data with active status
+      const bookData = {
+        ...book,
+        bookStatus: 1 // Set to active
+      };
+
+      formData.append('book', JSON.stringify(bookData));
+
+      // If book has image, preserve it
+      if (book.image) {
+        formData.append('image', book.image);
+      }
+
+      const res = await updateBookAPI(formData);
+
+      if (res.statusCode == 200) {
+        message.success("Kích hoạt lại sách thành công!");
+        refreshTable();
+      } else {
+        notification.error({
+          message: "Đã có lỗi xảy ra",
+          description: res.message,
+        });
+      }
+    } catch (error: any) {
+      notification.error({
+        message: "Đã có lỗi xảy ra",
+        description: error.message || "Không thể kích hoạt sách",
+      });
+    } finally {
+      setIsReactivatingBook(false);
+    }
+  };
+
+  const handleEditBook = async (entity: IBook) => {
+    const res = await getCategoryAPI();
+    if (res && res.data) {
+      setCategoryData(res.data.categories);
+    }
+    setOpenModalUpdate(true);
+    setDataUpdate(entity);
   };
 
   const columns: ProColumns<IBook>[] = [
@@ -149,31 +200,42 @@ const TableBook = () => {
         <>
           <EditOutlined
             style={{ cursor: "pointer", marginRight: 15, color: "#f57800" }}
-            onClick={async () => {
-              const res = await getCategoryAPI();
-              if (res && res.data) {
-                setCategoryData(res.data.categories);
-              }
-              setOpenModalUpdate(true);
-              setDataUpdate(entity);
-            }}
+            onClick={() => handleEditBook(entity)}
           />
-          <Popconfirm
-            placement="leftTop"
-            title={"Xác nhận xóa sách"}
-            description={"Bạn có chắc chắn muốn xóa quyền sách này ?"}
-            onConfirm={() => handleDeleteBook(entity.bookID)}
-            okText="Xác nhận"
-            cancelText="Hủy"
-            okButtonProps={{ loading: isDeleteBook }}
-          >
-            <span style={{ cursor: "pointer", marginLeft: 20 }}>
-              <DeleteTwoTone
-                twoToneColor="#ff4d4f"
-                style={{ cursor: "pointer" }}
-              />
-            </span>
-          </Popconfirm>
+          {entity.bookStatus === 0 ? (
+            <Popconfirm
+              placement="leftTop"
+              title={"Kích hoạt lại sách"}
+              description={"Bạn có chắc chắn muốn kích hoạt lại quyển sách này ?"}
+              onConfirm={() => handleReactivateBook(entity)}
+              okText="Xác nhận"
+              cancelText="Hủy"
+              okButtonProps={{ loading: isReactivatingBook }}
+            >
+              <span style={{ cursor: "pointer", marginLeft: 20 }}>
+                <UndoOutlined
+                  style={{ color: "#52c41a", cursor: "pointer" }}
+                />
+              </span>
+            </Popconfirm>
+          ) : (
+            <Popconfirm
+              placement="leftTop"
+              title={"Xác nhận xóa sách"}
+              description={"Bạn có chắc chắn muốn xóa quyền sách này ?"}
+              onConfirm={() => handleDeleteBook(entity.bookID)}
+              okText="Xác nhận"
+              cancelText="Hủy"
+              okButtonProps={{ loading: isDeleteBook }}
+            >
+              <span style={{ cursor: "pointer", marginLeft: 20 }}>
+                <DeleteTwoTone
+                  twoToneColor="#ff4d4f"
+                  style={{ cursor: "pointer" }}
+                />
+              </span>
+            </Popconfirm>
+          )}
         </>
       ),
     },

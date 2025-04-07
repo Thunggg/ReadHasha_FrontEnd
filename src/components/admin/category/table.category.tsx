@@ -1,4 +1,4 @@
-import { deleteCategoryAPI, getCategoryPaginationAPI } from "@/services/api";
+import { deleteCategoryAPI, getCategoryPaginationAPI, updateCategoryAPI } from "@/services/api";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -6,6 +6,7 @@ import {
   DeleteTwoTone,
   EditOutlined,
   PlusOutlined,
+  UndoOutlined,
 } from "@ant-design/icons";
 import type { ActionType, ProColumns } from "@ant-design/pro-components";
 import { ProTable } from "@ant-design/pro-components";
@@ -38,6 +39,7 @@ const TableCategory = () => {
   const [openModalCreate, setOpenModalCreate] = useState<boolean>(false);
 
   const [isDeleteCategory, setIsDeleteCategory] = useState<boolean>(false);
+  const [isReactivatingCategory, setIsReactivatingCategory] = useState<boolean>(false);
 
   const [openModalUpdate, setOpenModalUpdate] = useState<boolean>(false);
   const [dataUpdate, setDataUpdate] = useState<ICategory | null>(null);
@@ -64,6 +66,40 @@ const TableCategory = () => {
       });
     }
     setIsDeleteCategory(false);
+  };
+
+  const handleReactivateCategory = async (category: ICategory) => {
+    setIsReactivatingCategory(true);
+    try {
+      const categoryData = {
+        ...category,
+        catStatus: 1 // Set to active
+      };
+
+      const res = await updateCategoryAPI(categoryData);
+
+      if (res.statusCode === 200) {
+        message.success("Kích hoạt lại danh mục thành công!");
+        actionRef.current?.reload();
+      } else {
+        notification.error({
+          message: "Đã có lỗi xảy ra",
+          description: res.message,
+        });
+      }
+    } catch (error: any) {
+      notification.error({
+        message: "Đã có lỗi xảy ra",
+        description: error.message || "Không thể kích hoạt danh mục",
+      });
+    } finally {
+      setIsReactivatingCategory(false);
+    }
+  };
+
+  const handleEditCategory = (entity: ICategory) => {
+    setOpenModalUpdate(true);
+    setDataUpdate(entity);
   };
 
   const columns: ProColumns<ICategory>[] = [
@@ -98,20 +134,20 @@ const TableCategory = () => {
       dataIndex: "catStatus",
       valueType: "select",
       valueEnum: {
-        1: { text: "Active", status: "Success" },
-        0: { text: "Inactive", status: "Error" },
+        1: { text: "Hoạt động", status: "Success" },
+        0: { text: "Ngừng hoạt động", status: "Error" },
       },
       render: (_, record) => (
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {record.catStatus === 1 ? (
             <>
               <CheckCircleOutlined style={{ color: "#52c41a" }} />
-              <span>Active</span>
+              <span>Hoạt động</span>
             </>
           ) : (
             <>
               <CloseCircleOutlined style={{ color: "#ff4d4f" }} />
-              <span>Inactive</span>
+              <span>Ngừng hoạt động</span>
             </>
           )}
         </div>
@@ -124,25 +160,38 @@ const TableCategory = () => {
         <>
           <EditOutlined
             style={{ cursor: "pointer", marginRight: 15, color: "#f57800" }}
-            onClick={() => {
-              setOpenModalUpdate(true);
-              setDataUpdate(entity);
-            }}
+            onClick={() => handleEditCategory(entity)}
           />
-          <Popconfirm
-            placement="leftTop"
-            title="Xác nhận xóa danh mục"
-            description="Bạn có chắc chắn muốn xóa danh mục này?"
-            onConfirm={() => handleDeleteCategory(entity.catID)}
-            okText="Xác nhận"
-            cancelText="Hủy"
-            okButtonProps={{ loading: isDeleteCategory }}
-          >
-            <DeleteTwoTone
-              twoToneColor="#ff4d4f"
-              style={{ cursor: "pointer" }}
-            />
-          </Popconfirm>
+          {entity.catStatus === 0 ? (
+            <Popconfirm
+              placement="leftTop"
+              title="Kích hoạt lại danh mục"
+              description="Bạn có chắc chắn muốn kích hoạt lại danh mục này?"
+              onConfirm={() => handleReactivateCategory(entity)}
+              okText="Xác nhận"
+              cancelText="Hủy"
+              okButtonProps={{ loading: isReactivatingCategory }}
+            >
+              <UndoOutlined
+                style={{ cursor: "pointer", color: "#52c41a" }}
+              />
+            </Popconfirm>
+          ) : (
+            <Popconfirm
+              placement="leftTop"
+              title="Xác nhận xóa danh mục"
+              description="Bạn có chắc chắn muốn xóa danh mục này?"
+              onConfirm={() => handleDeleteCategory(entity.catID)}
+              okText="Xác nhận"
+              cancelText="Hủy"
+              okButtonProps={{ loading: isDeleteCategory }}
+            >
+              <DeleteTwoTone
+                twoToneColor="#ff4d4f"
+                style={{ cursor: "pointer" }}
+              />
+            </Popconfirm>
+          )}
         </>
       ),
     },
@@ -167,9 +216,8 @@ const TableCategory = () => {
             if (sort.catID) {
               query += `&sort=${sort.catID === "ascend" ? "catID" : "-catID"}`;
             } else if (sort.catName) {
-              query += `&sort=${
-                sort.catName === "ascend" ? "catName" : "-catName"
-              }`;
+              query += `&sort=${sort.catName === "ascend" ? "catName" : "-catName"
+                }`;
             }
           }
           const res = await getCategoryPaginationAPI(query);
