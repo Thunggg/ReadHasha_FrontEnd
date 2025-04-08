@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import { Button, Form, Input, message, notification, theme } from "antd";
 import { MailOutlined, ReloadOutlined } from "@ant-design/icons";
 import { resendOTP, verifyEmail } from "@/services/api";
@@ -15,6 +15,7 @@ const VerifyEmailForgotPassword: React.FC = () => {
     const [resendLoading, setResendLoading] = useState(false);
     const [countdown, setCountdown] = useState(60);
     const navigate = useNavigate();
+    const formRef = useRef<any>(null);
 
     useEffect(() => {
         if (countdown > 0) {
@@ -29,7 +30,17 @@ const VerifyEmailForgotPassword: React.FC = () => {
             const res = await verifyEmail(values.otp);
             if (res?.statusCode === 200) {
                 message.success("Xác thực thành công!");
+                localStorage.removeItem("otp_expiration"); // Clear expiration time
                 navigate("/forgot-password/reset-password");
+            } else if (res && res.error === "OTP_EXPIRED") {
+                notification.error({
+                    message: 'Mã OTP đã hết hạn',
+                    description: 'Mã OTP đã hết hạn sau 5 phút. Vui lòng yêu cầu mã mới.'
+                });
+                // Reset OTP input field
+                if (formRef.current) {
+                    formRef.current.setFieldsValue({ otp: '' });
+                }
             } else {
                 notification.error({
                     message: 'Đã có lỗi xảy ra',
@@ -50,6 +61,10 @@ const VerifyEmailForgotPassword: React.FC = () => {
             if (res?.statusCode === 200) {
                 message.success("Đã gửi lại mã OTP!");
                 setCountdown(60);
+                // Reset OTP input field
+                if (formRef.current) {
+                    formRef.current.setFieldsValue({ otp: '' });
+                }
             } else {
                 notification.error({
                     message: 'Đã có lỗi xảy ra',
@@ -138,7 +153,11 @@ const VerifyEmailForgotPassword: React.FC = () => {
                     đã được gửi đến email của bạn
                 </p>
 
-                <Form name="verify-email" onFinish={onFinish} autoComplete="off" layout="vertical">
+                <p className="expiration-note" style={{ color: token.colorWarning }}>
+                    Mã OTP có hiệu lực trong 5 phút
+                </p>
+
+                <Form name="verify-email" onFinish={onFinish} autoComplete="off" layout="vertical" ref={formRef}>
                     <Form.Item
                         name="otp"
                         rules={[

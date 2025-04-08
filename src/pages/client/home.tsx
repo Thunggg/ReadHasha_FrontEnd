@@ -198,7 +198,7 @@ const HomePage = () => {
                                         </Checkbox.Group>
                                     </Form.Item>
                                     <Divider />
-                                    <Form.Item
+                                    {/* <Form.Item
                                         label="Khoảng giá"
                                         labelCol={{ span: 24 }}
                                     >
@@ -238,7 +238,7 @@ const HomePage = () => {
                                                 Áp dụng
                                             </Button>
                                         </div>
-                                    </Form.Item>
+                                    </Form.Item> */}
                                 </Form>
                             </div>
                         </Col>

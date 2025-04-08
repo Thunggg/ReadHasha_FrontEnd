@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Result, Button, Spin } from "antd";
+import { Result, Button, Spin, notification } from "antd";
 import {
   CreateOrderAPI,
   deleteBookFromCartAPI,
   processVNPayCallback,
+  getBooksByIdAPI,
 } from "@/services/api";
 import { useCurrentApp } from "@/components/context/app.context";
 
@@ -53,6 +54,56 @@ const VNPayCallback = () => {
           } catch (error) {
             console.error("Error confirming payment with backend:", error);
             // Tiếp tục xử lý đơn hàng ngay cả khi không thể xác nhận với backend
+          }
+
+          // Kiểm tra số lượng sách trong kho trước khi hoàn tất đơn hàng
+          const stockValidationErrors = [];
+
+          for (const item of orderData.details) {
+            // Lấy thông tin sách hiện tại để kiểm tra số lượng trong kho
+            const bookResponse = await getBooksByIdAPI(item.bookId.toString());
+
+            if (bookResponse && bookResponse.data) {
+              const book = bookResponse.data;
+
+              // Kiểm tra nếu số lượng trong đơn hàng vượt quá số lượng tồn kho
+              if (item.quantity > book.bookQuantity) {
+                stockValidationErrors.push({
+                  bookTitle: book.bookTitle,
+                  requested: item.quantity,
+                  available: book.bookQuantity
+                });
+              }
+            }
+          }
+
+          // Nếu có lỗi về số lượng tồn kho, hiển thị thông báo lỗi
+          if (stockValidationErrors.length > 0) {
+            const errorMessages = stockValidationErrors.map(err =>
+              `${err.bookTitle}: yêu cầu ${err.requested}, chỉ còn ${err.available} sản phẩm`
+            );
+
+            setStatus("error");
+            setErrorMessage("Một số sản phẩm trong đơn hàng không còn đủ số lượng trong kho. Vui lòng cập nhật giỏ hàng và thử lại.");
+
+            // Hiển thị chi tiết về các sản phẩm không đủ số lượng
+            notification.error({
+              message: "Không đủ hàng trong kho",
+              description: (
+                <div>
+                  <p>Đơn hàng của bạn không thể hoàn tất vì một số sản phẩm đã hết hoặc không đủ số lượng:</p>
+                  <ul>
+                    {errorMessages.map((msg, index) => (
+                      <li key={index}>{msg}</li>
+                    ))}
+                  </ul>
+                  <p>Vui lòng cập nhật giỏ hàng của bạn và thử lại.</p>
+                </div>
+              ),
+              duration: 0, // Hiển thị cho đến khi người dùng đóng
+            });
+
+            return;
           }
 
           // Gọi API tạo đơn hàng

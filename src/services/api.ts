@@ -14,8 +14,12 @@ export const registerAPI = async (registerData: any) => {
         const accessToken = response.access_token;
         if (accessToken) {
             localStorage.setItem("access_token", accessToken);
-        }
 
+            // Store OTP expiration time (5 minutes from now)
+            const expirationTime = new Date();
+            expirationTime.setMinutes(expirationTime.getMinutes() + 5);
+            localStorage.setItem("otp_expiration", expirationTime.toISOString());
+        }
     } else {
         console.warn("Backend không trả về token hợp lệ!");
     }
@@ -29,6 +33,23 @@ export const verifyEmail = async (otp: string) => {
     const token = localStorage.getItem("access_token");
     if (!token) {
         throw new Error("Không tìm thấy token! Vui lòng đăng nhập lại.");
+    }
+
+    // Check if OTP has expired
+    const expirationTimeStr = localStorage.getItem("otp_expiration");
+    if (expirationTimeStr) {
+        const expirationTime = new Date(expirationTimeStr);
+        const currentTime = new Date();
+
+        if (currentTime > expirationTime) {
+            // OTP has expired
+            return {
+                statusCode: 400,
+                message: "Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới.",
+                data: null,
+                error: "OTP_EXPIRED"
+            };
+        }
     }
 
     return axios.post(urlBackend, { otp }, {
@@ -46,11 +67,20 @@ export const resendOTP = async () => {
         throw new Error("Không tìm thấy token! Vui lòng thử đăng ký lại!");
     }
 
-    return axios.post(urlBackend, {}, {
+    const response = await axios.post(urlBackend, {}, {
         headers: {
             Authorization: `Bearer ${token}`,
         },
     });
+
+    if (response && response.statusCode === 200) {
+        // Reset OTP expiration time (5 minutes from now)
+        const expirationTime = new Date();
+        expirationTime.setMinutes(expirationTime.getMinutes() + 5);
+        localStorage.setItem("otp_expiration", expirationTime.toISOString());
+    }
+
+    return response;
 };
 
 export const LoginAPI = async (username: string, password: string) => {
@@ -103,8 +133,15 @@ export const sendVerificationOTP = (email: string) => {
                 'Content-Type': 'application/json',
             },
         }
-    );
-
+    ).then(response => {
+        if (response.data && response.data.statusCode === 200) {
+            // Store OTP expiration time (5 minutes from now)
+            const expirationTime = new Date();
+            expirationTime.setMinutes(expirationTime.getMinutes() + 5);
+            localStorage.setItem("otp_expiration", expirationTime.toISOString());
+        }
+        return response.data;
+    });
 }
 
 export const resetPasswordAPI = (newPassword: string) => {
@@ -276,6 +313,12 @@ export const updatePromotionAPI = async (data: any) => {
 export const updateOrderStatusAPI = (orderId: number, status: number) => {
     const urlBackend = `/api/v1/orders/update-status/${orderId}`;
     return axios.put(urlBackend, { status });
+};
+
+// API để hủy đơn hàng và khôi phục số lượng sách
+export const cancelOrderAndRestoreStockAPI = (orderId: number) => {
+    const urlBackend = `/api/v1/orders/${orderId}/cancel-and-restore`;
+    return axios.post<IBackendRes<IOrder>>(urlBackend);
 };
 
 // API để admin xác nhận đơn hàng

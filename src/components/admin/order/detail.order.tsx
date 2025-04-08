@@ -201,18 +201,7 @@ const DetailOrder: React.FC<IDetailOrderProps> = ({
             footer={[
                 <Button key="close" onClick={() => setOpenViewDetail(false)}>
                     Đóng
-                </Button>,
-                dataViewDetail.orderStatus === 1 && (
-                    <Button
-                        key="confirm"
-                        type="primary"
-                        icon={<CheckCircleOutlined />}
-                        loading={confirmLoading}
-                        onClick={handleConfirmOrder}
-                    >
-                        Xác nhận đơn hàng
-                    </Button>
-                )
+                </Button>
             ]}
             bodyStyle={{
                 padding: '16px',

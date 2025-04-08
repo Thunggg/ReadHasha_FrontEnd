@@ -1,7 +1,7 @@
 // import { createBookAPI } from '@/services/api';
 import { Button, Col, Form, Input, InputNumber, message, Modal, Row, Select, Upload } from 'antd';
 import { FormProps } from 'antd/lib';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { UploadFile } from 'antd/es/upload/interface';
 import { createBookAPI } from '@/services/api';
 
@@ -35,6 +35,15 @@ const CreateBook = (props: IProps) => {
     const [isSubmit, setIsSubmit] = useState(false);
     const [fileList, setFileList] = useState<UploadFile[]>([]);
     const { openModalCreate, setOpenModalCreate, refreshTable, categoryData } = props;
+
+    // Reset form and fileList when modal is opened/closed
+    useEffect(() => {
+        if (!openModalCreate) {
+            // Clear form and file list when modal is closed
+            form.resetFields();
+            setFileList([]);
+        }
+    }, [openModalCreate, form]);
 
     const onFinish: FormProps<BookFormType>['onFinish'] = async (values) => {
         setIsSubmit(true);
@@ -95,7 +104,6 @@ const CreateBook = (props: IProps) => {
                 refreshTable();
             }}
             onCancel={() => {
-                form.resetFields();
                 setOpenModalCreate(false);
             }}
             destroyOnClose={true}
@@ -184,7 +192,7 @@ const CreateBook = (props: IProps) => {
                                     name="publicationYear"
                                     rules={[
                                         { required: true, message: 'Vui lòng nhập năm XB' },
-                                        { type: 'number', min: 1900, max: new Date().getFullYear() }
+                                        { type: 'number', min: 1900, max: new Date().getFullYear(), message: "Năm xuất bản phải nằm trong khoảng 1900-2025" }
                                     ]}
                                 >
                                     <InputNumber
@@ -220,7 +228,7 @@ const CreateBook = (props: IProps) => {
                                     name="bookPrice"
                                     rules={[
                                         { required: true, message: 'Vui lòng nhập giá' },
-                                        { type: 'number', min: 1000 }
+                                        { type: 'number', min: 1000, message: 'Giá sách phải lớn hơn hoặc bằng 1000' }
                                     ]}
                                 >
                                     <InputNumber
@@ -235,7 +243,7 @@ const CreateBook = (props: IProps) => {
                                     name="bookQuantity"
                                     rules={[
                                         { required: true, message: 'Vui lòng nhập số lượng' },
-                                        { type: 'number', min: 0 }
+                                        { type: 'number', min: 0, message: 'Số lượng sách phải lớn hơn hoặc bằng 0' }
                                     ]}
                                 >
                                     <InputNumber

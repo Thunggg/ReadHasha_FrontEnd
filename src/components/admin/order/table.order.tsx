@@ -1,11 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { dateRangeValidate } from '@/services/helper';
-import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, FilePdfOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ClockCircleOutlined, CloseCircleOutlined, EyeOutlined, FilePdfOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { Button, Tag, Tooltip, Space, Typography, Avatar, message } from 'antd';
+import { Button, Tag, Tooltip, Space, Typography, Avatar, message, Popconfirm } from 'antd';
 import dayjs from 'dayjs';
-import { getOrderPaginationAPI, approveOrderAPI } from '@/services/api';
+import { getOrderPaginationAPI, approveOrderAPI, updateOrderStatusAPI, cancelOrderAndRestoreStockAPI } from '@/services/api';
 import DetailOrder from './detail.order';
 import { useCurrentApp } from '@/components/context/app.context';
 // import DetailOrder from './detail.order';
@@ -38,6 +38,7 @@ const TableOrder: React.FC = () => {
     const [openViewDetail, setOpenViewDetail] = useState<boolean>(false);
     const [dataViewDetail, setDataViewDetail] = useState<IOrder | null>(null);
     const [confirmingOrderId, setConfirmingOrderId] = useState<number | null>(null);
+    const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
     const { user } = useCurrentApp();
 
     // Tính tổng tiền của đơn hàng
@@ -79,6 +80,30 @@ const TableOrder: React.FC = () => {
             message.error('Không thể kết nối đến server hoặc có lỗi xảy ra');
         } finally {
             setConfirmingOrderId(null);
+        }
+    };
+
+    // Add function to handle order cancellation
+    const handleCancelOrder = async (orderId: number) => {
+        if (!user || !user.username) {
+            message.error('Bạn cần đăng nhập để thực hiện thao tác này');
+            return;
+        }
+
+        setCancellingOrderId(orderId);
+        try {
+            const res = await cancelOrderAndRestoreStockAPI(orderId);
+            if (res.statusCode === 200) {
+                message.success('Đã hủy đơn hàng');
+                actionRef.current?.reload();
+            } else {
+                message.error('Có lỗi xảy ra khi hủy đơn hàng: ' + res.message);
+            }
+        } catch (error) {
+            console.error('Error cancelling order:', error);
+            message.error('Không thể kết nối đến server hoặc có lỗi xảy ra');
+        } finally {
+            setCancellingOrderId(null);
         }
     };
 
@@ -208,16 +233,42 @@ const TableOrder: React.FC = () => {
                 </Tooltip>,
                 record.orderStatus === 1 ? (
                     <Tooltip title="Xác nhận đơn hàng" key="confirm">
-                        <Button
-                            type="link"
-                            icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-                            loading={confirmingOrderId === record.orderID}
-                            onClick={() => handleConfirmOrder(record.orderID)}
-                        />
+                        <Popconfirm
+                            title="Xác nhận đơn hàng"
+                            description="Bạn có chắc chắn muốn xác nhận đơn hàng này?"
+                            onConfirm={() => handleConfirmOrder(record.orderID)}
+                            okText="Có"
+                            cancelText="Không"
+                        >
+                            <Button
+                                type="link"
+                                icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+                                loading={confirmingOrderId === record.orderID}
+                            />
+                        </Popconfirm>
                     </Tooltip>
                 ) : (
-                    <>
-                    </>
+                    <></>
+                ),
+                (record.orderStatus === 1 || record.orderStatus === 2) ? (
+                    <Tooltip title="Hủy đơn hàng" key="cancel">
+                        <Popconfirm
+                            title="Hủy đơn hàng"
+                            description="Bạn có chắc chắn muốn hủy đơn hàng này?"
+                            onConfirm={() => handleCancelOrder(record.orderID)}
+                            okText="Có"
+                            cancelText="Không"
+                        >
+                            <Button
+                                type="link"
+                                danger
+                                icon={<DeleteOutlined />}
+                                loading={cancellingOrderId === record.orderID}
+                            />
+                        </Popconfirm>
+                    </Tooltip>
+                ) : (
+                    <></>
                 ),
             ],
         },

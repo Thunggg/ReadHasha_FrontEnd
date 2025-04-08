@@ -27,6 +27,7 @@ import {
   getPromotionsAPI,
   getUsedPromotionsAPI,
   updatePromotionAPI,
+  getBooksByIdAPI,
 } from "@/services/api";
 import axios from "axios";
 
@@ -205,22 +206,69 @@ const Payment = (props: IProps) => {
       return;
     }
 
-    // Xây dựng payload đơn hàng
-    const orderPayload: IOrderRequest = {
-      username: user.username,
-      address,
-      details: carts.map((item) => ({
-        bookId: item.id,
-        quantity: item.quantity,
-      })),
-      // Thêm mã giảm giá nếu có
-      promotionID: selectedPromotion?.proID,
-      finalPrice: finalPrice,
-    };
-
     setIsSubmit(true);
 
     try {
+      // Kiểm tra số lượng sách trong kho cho từng sản phẩm
+      const stockValidationErrors = [];
+
+      for (const item of carts) {
+        // Lấy thông tin sách hiện tại để kiểm tra số lượng trong kho
+        const bookResponse = await getBooksByIdAPI(item.id.toString());
+
+        if (bookResponse && bookResponse.data) {
+          const book = bookResponse.data;
+
+          // Kiểm tra nếu số lượng trong giỏ hàng vượt quá số lượng tồn kho
+          if (item.quantity > book.bookQuantity) {
+            stockValidationErrors.push({
+              bookTitle: book.bookTitle,
+              requested: item.quantity,
+              available: book.bookQuantity
+            });
+          }
+        }
+      }
+
+      // Nếu có lỗi về số lượng tồn kho, hiển thị thông báo và không tiếp tục
+      if (stockValidationErrors.length > 0) {
+        const errorMessages = stockValidationErrors.map(err =>
+          `${err.bookTitle}: yêu cầu ${err.requested}, chỉ còn ${err.available} sản phẩm`
+        );
+
+        notification.error({
+          message: "Không đủ hàng trong kho",
+          description: (
+            <div>
+              <p>Một số sản phẩm trong giỏ hàng của bạn đã hết hoặc không đủ số lượng:</p>
+              <ul>
+                {errorMessages.map((msg, index) => (
+                  <li key={index}>{msg}</li>
+                ))}
+              </ul>
+              <p>Vui lòng cập nhật giỏ hàng của bạn.</p>
+            </div>
+          ),
+          duration: 0, // Hiển thị cho đến khi người dùng đóng
+        });
+
+        setIsSubmit(false);
+        return;
+      }
+
+      // Xây dựng payload đơn hàng
+      const orderPayload: IOrderRequest = {
+        username: user.username,
+        address,
+        details: carts.map((item) => ({
+          bookId: item.id,
+          quantity: item.quantity,
+        })),
+        // Thêm mã giảm giá nếu có
+        promotionID: selectedPromotion?.proID,
+        finalPrice: finalPrice,
+      };
+
       // Nếu phương thức thanh toán là VNPay
       if (method === "BANKING") {
         try {

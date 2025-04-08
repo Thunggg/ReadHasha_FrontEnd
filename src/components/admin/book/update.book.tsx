@@ -100,7 +100,7 @@ const EditBook = (props: IProps) => {
                 weight: Number(values.weight),
                 bookPrice: Number(values.bookPrice),
                 bookQuantity: Number(values.bookQuantity),
-                bookStatus: Number(values.bookStatus),
+                bookStatus: dataUpdate?.bookStatus || 1, // Luôn giữ nguyên status hiện tại
                 bookCategories: bookCategories
             };
 
@@ -233,7 +233,7 @@ const EditBook = (props: IProps) => {
                                     name="publicationYear"
                                     rules={[
                                         { required: true, message: 'Vui lòng nhập năm XB' },
-                                        { type: 'number', min: 1900, max: new Date().getFullYear() }
+                                        { type: 'number', min: 1900, max: new Date().getFullYear(), message: "Năm xuất bản phải nằm trong khoảng 1900-2025" }
                                     ]}
                                 >
                                     <InputNumber
@@ -268,7 +268,7 @@ const EditBook = (props: IProps) => {
                                     name="bookPrice"
                                     rules={[
                                         { required: true, message: 'Vui lòng nhập giá' },
-                                        { type: 'number', min: 1000 }
+                                        { type: 'number', min: 1000, message: 'Giá sách phải lớn hơn hoặc bằng 1000' }
                                     ]}
                                 >
                                     <InputNumber
@@ -283,7 +283,7 @@ const EditBook = (props: IProps) => {
                                     name="bookQuantity"
                                     rules={[
                                         { required: true, message: 'Vui lòng nhập số lượng' },
-                                        { type: 'number', min: 0 }
+                                        { type: 'number', min: 0, message: 'Số lượng sách phải lớn hơn hoặc bằng 0' }
                                     ]}
                                 >
                                     <InputNumber
@@ -291,20 +291,6 @@ const EditBook = (props: IProps) => {
                                         placeholder="0"
                                     />
                                 </Form.Item>
-
-                                {/* <Form.Item<BookFormType>
-                                    label={<span style={{ fontWeight: 500 }}>Trạng thái</span>}
-                                    name="bookStatus"
-                                    rules={[{ required: true }]}
-                                >
-                                    <Select
-                                        style={{ borderRadius: '6px' }}
-                                        options={[
-                                            { value: 1, label: 'Còn hàng' },
-                                            { value: 0, label: 'Hết hàng' },
-                                        ]}
-                                    />
-                                </Form.Item> */}
                             </div>
 
                             <div style={{

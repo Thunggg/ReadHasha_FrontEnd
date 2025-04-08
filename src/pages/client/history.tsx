@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { App, Button, Card, Descriptions, Divider, Drawer, Empty, Table, Tag } from "antd";
+import { App, Button, Card, Descriptions, Divider, Drawer, Empty, Popconfirm, Table, Tag } from "antd";
 import type { TableProps } from "antd";
 import dayjs from "dayjs";
 import { FORMATE_DATE_VN } from "@/services/helper";
-import { getHistoryAPI } from "@/services/api";
+import { getHistoryAPI, updateOrderStatusAPI, cancelOrderAndRestoreStockAPI } from "@/services/api";
 import { useCurrentApp } from "@/components/context/app.context";
+import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 
 const HistoryPage = () => {
     const [dataHistory, setDataHistory] = useState<IHistory[]>([]);
@@ -84,21 +85,62 @@ const HistoryPage = () => {
             dataIndex: 'orderAddress',
         },
         {
-            title: 'Chi tiết',
+            title: 'Thao tác',
             key: 'action',
             render: (_, record) => (
-                <a
-                    onClick={() => {
-                        setOpenDetail(true);
-                        setDataDetail(record);
-                    }}
-                    href="#"
-                >
-                    Xem chi tiết
-                </a>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <Button
+                        type="text"
+                        icon={<EyeOutlined />}
+                        onClick={() => {
+                            setOpenDetail(true);
+                            setDataDetail(record);
+                        }}
+                    />
+
+                    {record.orderStatus === 1 && (
+                        <Popconfirm
+                            title="Hủy đơn hàng"
+                            description="Bạn có chắc chắn muốn hủy đơn hàng này?"
+                            onConfirm={() => handleCancelOrder(record.orderID)}
+                            okText="Có"
+                            cancelText="Không"
+                        >
+                            <Button
+                                type="text"
+                                danger
+                                icon={<DeleteOutlined />}
+                            />
+                        </Popconfirm>
+                    )}
+                </div>
             ),
         },
     ];
+
+    const handleCancelOrder = async (orderId: number) => {
+        try {
+            const res = await cancelOrderAndRestoreStockAPI(orderId);
+            if (res && res.statusCode === 200) {
+                notification.success({
+                    message: "Thành công",
+                    description: "Đã hủy đơn hàng",
+                });
+                // Refresh the order list
+                fetchData();
+            } else {
+                notification.error({
+                    message: "Lỗi",
+                    description: res.message || "Không thể hủy đơn hàng",
+                });
+            }
+        } catch (error: any) {
+            notification.error({
+                message: "Lỗi hệ thống",
+                description: error.response?.data?.message || "Lỗi kết nối đến máy chủ",
+            });
+        }
+    };
 
     const fetchData = async () => {
         setLoading(true);

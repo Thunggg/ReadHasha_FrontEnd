@@ -42,6 +42,7 @@ import ResetPassword from './pages/client/auth/forgotPassword/ResetPassword';
 import { ForgotPasswordProvider } from './components/context/ForgotPassword.context';
 import ProtectedRouteForgotPassword from './components/auth/ProtectedRouteForgotPassword';
 import ManagePromotionPage from './pages/admin/manage.promotion';
+import DashBoardPage from './components/admin/dashboard';
 
 const router = createBrowserRouter([
   {
@@ -94,7 +95,7 @@ const router = createBrowserRouter([
         index: true,
         element: (
           <ProtectedRoute>
-            <div>admin page</div>
+            <DashBoardPage />
           </ProtectedRoute>
         ),
       },

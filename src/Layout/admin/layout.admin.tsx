@@ -11,7 +11,7 @@ import {
   GiftOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Dropdown, Space, Avatar } from "antd";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import type { MenuProps } from "antd";
 import { useCurrentApp } from "@/components/context/app.context";
@@ -27,6 +27,7 @@ const LayoutAdmin = () => {
     useCurrentApp();
 
   const location = useLocation();
+  const navigate = useNavigate();
 
   const items: MenuItem[] = [
     {

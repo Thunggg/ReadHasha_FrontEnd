@@ -188,13 +188,19 @@ const TableUser = () => {
       render(dom, entity, index, action, schema) {
         return (
           <>
+            <EditTwoTone
+              twoToneColor="#f57800"
+              style={{ cursor: "pointer", marginRight: 15 }}
+              onClick={() => {
+                if (entity.role === 0) {
+                  message.error("Không thể chỉnh sửa tài khoản Admin");
+                  return;
+                }
+                handleEditUser(entity);
+              }}
+            />
             {entity.role !== 0 && (
               <>
-                <EditTwoTone
-                  twoToneColor="#f57800"
-                  style={{ cursor: "pointer", marginRight: 15 }}
-                  onClick={() => handleEditUser(entity)}
-                />
                 {entity.accStatus === 0 ? (
                   <Popconfirm
                     placement="leftTop"

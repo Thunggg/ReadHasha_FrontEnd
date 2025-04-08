@@ -10,6 +10,7 @@ import {
   fetchAccountAPI,
   updateCartQuantityAPI,
 } from "@/services/api";
+import { useNavigate } from "react-router-dom";
 
 interface IProps {
   setCurrentStep: (v: number) => void;
@@ -177,6 +178,24 @@ const OrderDetail = (props: IProps) => {
 
     if (hasLockedOrOutOfStockBooks) {
       message.error("Vui lòng xóa các sách bị khóa hoặc hết hàng khỏi giỏ hàng trước khi thanh toán.");
+      return;
+    }
+
+    // Kiểm tra số lượng đặt hàng không vượt quá số lượng tồn kho
+    const overStockItems = carts.filter(item => item.quantity > item.detail.bookQuantity);
+    if (overStockItems.length > 0) {
+      const bookNames = overStockItems.map(item => `"${item.detail.bookTitle}" (Có thể đặt tối đa: ${item.detail.bookQuantity})`);
+      message.error(
+        <div>
+          <p>Số lượng đặt hàng vượt quá số lượng tồn kho của các sách sau:</p>
+          <ul>
+            {bookNames.map((name, index) => (
+              <li key={index}>{name}</li>
+            ))}
+          </ul>
+          <p>Vui lòng điều chỉnh số lượng trước khi thanh toán.</p>
+        </div>
+      );
       return;
     }
 

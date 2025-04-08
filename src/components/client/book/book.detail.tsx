@@ -107,47 +107,50 @@ const BookDetail = () => {
         }
     };
 
-    const handleBuyNow = () => {
+    const handleBuyNow = async () => {
         if (!user) {
             message.error("Bạn cần đăng nhập để thực hiện tính năng này.")
             return;
         }
-        //update localStorage
-        const cartStorage = localStorage.getItem("carts");
-        if (cartStorage && bookDetail) {
-            //update
-            const carts = JSON.parse(cartStorage) as ICart[];
 
-            //check exist
-            let isExistIndex = carts.findIndex(c => c.id === bookDetail.bookID);
-            if (isExistIndex > -1) {
-                carts[isExistIndex].quantity =
-                    carts[isExistIndex].quantity + currentQuantity;
-            } else {
-                carts.push({
-                    quantity: currentQuantity,
-                    id: bookDetail.bookID,
-                    detail: bookDetail
-                })
+        if (!bookDetail) {
+            message.error("Không tìm thấy thông tin sách!");
+            return;
+        }
+
+        try {
+            // Thêm sách vào database trước
+            const response = await addBookToCartAPI(
+                user.username,
+                bookDetail.bookID,
+                currentQuantity
+            );
+
+            if (response.statusCode !== 200) {
+                message.error(response.message || "Thêm sách vào giỏ hàng thất bại!");
+                return;
             }
 
-            localStorage.setItem("carts", JSON.stringify(carts));
+            // Cập nhật lại giỏ hàng từ database
+            const accountRes = await fetchAccountAPI();
 
-            //sync React Context
-            setCarts(carts);
-        } else {
-            //create
-            const data = [{
-                id: bookDetail?.bookID!,
-                quantity: currentQuantity,
-                detail: bookDetail!
-            }]
-            localStorage.setItem("carts", JSON.stringify(data))
+            if (accountRes.data?.cartCollection) {
+                const cartsFromDB = accountRes.data.cartCollection.map(item => ({
+                    id: item.bookID.bookID,
+                    quantity: item.quantity,
+                    detail: item.bookID
+                }));
 
-            //sync React Context
-            setCarts(data);
+                setCarts(cartsFromDB);
+                localStorage.setItem("carts", JSON.stringify(cartsFromDB));
+            }
+
+            // Chuyển đến trang đặt hàng
+            navigate("/order");
+        } catch (error: any) {
+            console.error("Error processing buy now:", error);
+            message.error(error.response?.data?.message || "Có lỗi xảy ra khi xử lý mua ngay!");
         }
-        navigate("/order");
     };
 
     const handleChangeButton = (type: UserAction) => {

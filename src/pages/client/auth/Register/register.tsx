@@ -214,9 +214,7 @@ const RegisterPage: React.FC = () => {
                   {
                     validator: (_, value) => {
                       if (!value) {
-                        return Promise.reject(
-                          new Error("Vui lòng nhập ngày sinh")
-                        );
+                        return Promise.resolve();
                       }
                       const selectedDate = new Date(value);
                       const currentDate = new Date();
