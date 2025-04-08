@@ -50,7 +50,8 @@ interface IProps {
 }
 
 const Payment = (props: IProps) => {
-  const { carts, setCarts, user } = useCurrentApp();
+  const { carts: allCarts, setCarts: setContextCarts, user } = useCurrentApp();
+  const [localCarts, setLocalCarts] = useState<ICart[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [finalPrice, setFinalPrice] = useState(0);
@@ -67,6 +68,17 @@ const Payment = (props: IProps) => {
     []
   );
   const [showAllPromotions, setShowAllPromotions] = useState(false);
+
+  // Lấy danh sách sản phẩm đã chọn từ localStorage khi component mount
+  useEffect(() => {
+    const selectedCartsStr = localStorage.getItem("selectedCarts");
+    if (selectedCartsStr) {
+      const selectedCarts = JSON.parse(selectedCartsStr) as ICart[];
+      setLocalCarts(selectedCarts);
+    } else {
+      setLocalCarts(allCarts);
+    }
+  }, [allCarts]);
 
   // Fetch promotions and used promotions when component mounts
   useEffect(() => {
@@ -107,9 +119,9 @@ const Payment = (props: IProps) => {
   }, [user, form]);
 
   useEffect(() => {
-    if (carts && carts.length > 0) {
+    if (localCarts && localCarts.length > 0) {
       let sum = 0;
-      carts.forEach((item) => {
+      localCarts.forEach((item) => {
         sum += item.quantity * item.detail.bookPrice;
       });
       setTotalPrice(sum);
@@ -121,7 +133,7 @@ const Payment = (props: IProps) => {
       setFinalPrice(0);
       setDiscountAmount(0);
     }
-  }, [carts, selectedPromotion]);
+  }, [localCarts, selectedPromotion]);
 
   const calculateFinalPrice = (price: number, promotion: IPromotion | null) => {
     if (!promotion) {
@@ -143,7 +155,7 @@ const Payment = (props: IProps) => {
       const newCarts = carts.filter((item) => item.id !== _id);
       localStorage.setItem("carts", JSON.stringify(newCarts));
       //sync React Context
-      setCarts(newCarts);
+      setContextCarts(newCarts);
     }
   };
 
@@ -198,7 +210,7 @@ const Payment = (props: IProps) => {
     }
 
     // Kiểm tra giỏ hàng có sản phẩm hay không
-    if (!carts?.length) {
+    if (!localCarts?.length) {
       notification.warning({
         message: "Giỏ hàng trống",
         description: "Vui lòng thêm sản phẩm vào giỏ hàng",
@@ -212,7 +224,7 @@ const Payment = (props: IProps) => {
       // Kiểm tra số lượng sách trong kho cho từng sản phẩm
       const stockValidationErrors = [];
 
-      for (const item of carts) {
+      for (const item of localCarts) {
         // Lấy thông tin sách hiện tại để kiểm tra số lượng trong kho
         const bookResponse = await getBooksByIdAPI(item.id.toString());
 
@@ -260,7 +272,7 @@ const Payment = (props: IProps) => {
       const orderPayload: IOrderRequest = {
         username: user.username,
         address,
-        details: carts.map((item) => ({
+        details: localCarts.map((item) => ({
           bookId: item.id,
           quantity: item.quantity,
         })),
@@ -384,7 +396,7 @@ const Payment = (props: IProps) => {
 
         // Xóa từng sản phẩm trong giỏ hàng từ database
         if (user && !isBuyNow) {
-          const deletePromises = carts.map((item) =>
+          const deletePromises = localCarts.map((item) =>
             deleteBookFromCartAPI(user.username, item.id)
           );
           await Promise.all(deletePromises);
@@ -397,9 +409,11 @@ const Payment = (props: IProps) => {
         } else {
           // Nếu là mua từ giỏ hàng, xóa giỏ hàng trong localStorage
           localStorage.removeItem("carts");
+          localStorage.removeItem("selectedCarts");
         }
 
-        setCarts([]);
+        setLocalCarts([]);
+        setContextCarts([]);
         setCurrentStep(2);
       } else {
         notification.error({
@@ -434,9 +448,9 @@ const Payment = (props: IProps) => {
         <Col md={16} xs={24}>
           <div className="product-list">
             <Title level={4} className="section-title">
-              Sản phẩm đặt mua ({carts.length})
+              Sản phẩm đặt mua ({localCarts.length})
             </Title>
-            {carts.map((item, index) => (
+            {localCarts.map((item, index) => (
               <div className="order-item" key={`item-${index}`}>
                 <div className="item-content">
                   <img

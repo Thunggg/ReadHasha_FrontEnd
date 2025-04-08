@@ -1,6 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // OrderDetail.tsx
-import { App, Button, Col, Divider, Empty, InputNumber, Row, notification, Alert } from "antd";
+import {
+  App,
+  Button,
+  Col,
+  Divider,
+  Empty,
+  InputNumber,
+  Row,
+  notification,
+  Alert,
+  Checkbox,
+} from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import { useCurrentApp } from "@/components/context/app.context";
@@ -22,15 +33,26 @@ const OrderDetail = (props: IProps) => {
   const [totalPrice, setTotalPrice] = useState(0);
   const { message } = App.useApp();
   const { user } = useCurrentApp();
-  const [warnings, setWarnings] = useState<{ locked: string[], outOfStock: string[] }>({ locked: [], outOfStock: [] });
+  const [warnings, setWarnings] = useState<{
+    locked: string[];
+    outOfStock: string[];
+  }>({ locked: [], outOfStock: [] });
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     const sum = carts.reduce(
-      (acc, item) => acc + item.quantity * (item.detail?.bookPrice || 0),
+      (acc, item) => {
+        // Chỉ tính tổng tiền cho các sản phẩm đã chọn
+        if (selectedItems.includes(item.id)) {
+          return acc + item.quantity * (item.detail?.bookPrice || 0);
+        }
+        return acc;
+      },
       0
     );
     setTotalPrice(sum);
-  }, [carts]);
+  }, [carts, selectedItems]);
 
   // Kiểm tra trạng thái sách và cập nhật cảnh báo
   useEffect(() => {
@@ -47,18 +69,15 @@ const OrderDetail = (props: IProps) => {
 
     setWarnings({
       locked: lockedBooks,
-      outOfStock: outOfStockBooks
+      outOfStock: outOfStockBooks,
     });
   }, [carts]);
 
-  // const handleOnChangeInput = (value: number | null, book: IBook) => {
-  //     if (!value || value < 1) return;
-  //     const updatedCarts = carts.map(cart =>
-  //         cart.id === book.bookID ? { ...cart, quantity: value } : cart
-  //     );
-  //     localStorage.setItem("carts", JSON.stringify(updatedCarts));
-  //     setCarts(updatedCarts);
-  // };
+  // Reset selected items when cart changes
+  useEffect(() => {
+    setSelectedItems([]);
+    setSelectAll(false);
+  }, [carts.length]);
 
   const handleOnChangeInput = async (value: number, book: IBook) => {
     if (!user) {
@@ -165,39 +184,117 @@ const OrderDetail = (props: IProps) => {
     }
   };
 
+  // Handle multiple items deletion
+  const handleRemoveSelectedBooks = async () => {
+    if (!user) {
+      message.error("Bạn cần đăng nhập để thực hiện tính năng này.");
+      return;
+    }
+
+    if (selectedItems.length === 0) {
+      message.warning("Vui lòng chọn ít nhất một sách để xóa.");
+      return;
+    }
+
+    try {
+      // Show loading message
+      const loadingMessage = message.loading(
+        "Đang xóa sách khỏi giỏ hàng...",
+        0
+      );
+
+      // Delete each selected book
+      const deletePromises = selectedItems.map((id) =>
+        deleteBookFromCartAPI(user.username, id)
+      );
+
+      await Promise.all(deletePromises);
+
+      // Update cart from database
+      const accountRes = await fetchAccountAPI();
+
+      if (accountRes.data?.cartCollection) {
+        const cartsFromDB = accountRes.data.cartCollection.map((item) => ({
+          id: item.bookID.bookID,
+          quantity: item.quantity,
+          detail: item.bookID,
+        }));
+
+        setCarts(cartsFromDB);
+        localStorage.setItem("carts", JSON.stringify(cartsFromDB));
+      } else {
+        setCarts([]);
+        localStorage.setItem("carts", JSON.stringify([]));
+      }
+
+      // Clear selected items
+      setSelectedItems([]);
+      setSelectAll(false);
+
+      // Close loading message and show success
+      loadingMessage();
+      message.success(`Đã xóa ${selectedItems.length} sách khỏi giỏ hàng!`);
+    } catch (error: any) {
+      console.error("Error removing books from cart:", error);
+      message.error(
+        error.response?.data?.message ||
+        "Có lỗi xảy ra khi xóa sách khỏi giỏ hàng!"
+      );
+    }
+  };
+
+  const handleSelectItem = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedItems((prev) => [...prev, id]);
+    } else {
+      setSelectedItems((prev) => prev.filter((item) => item !== id));
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectAll(checked);
+    if (checked) {
+      // Select all valid items (not locked or out of stock)
+      const validItemIds = carts
+        .filter(
+          (item) => item.detail.bookStatus !== 0 && item.detail.bookQuantity > 0
+        )
+        .map((item) => item.id);
+      setSelectedItems(validItemIds);
+    } else {
+      setSelectedItems([]);
+    }
+  };
+
   const handleNextStep = () => {
     if (!carts.length) {
       message.error("Không tồn tại sản phẩm trong giỏ hàng.");
       return;
     }
 
-    // Kiểm tra xem có sách nào bị khóa hoặc hết hàng không
-    const hasLockedOrOutOfStockBooks = carts.some(
-      (item) => item.detail.bookStatus === 0 || item.detail.bookQuantity === 0
-    );
-
-    if (hasLockedOrOutOfStockBooks) {
-      message.error("Vui lòng xóa các sách bị khóa hoặc hết hàng khỏi giỏ hàng trước khi thanh toán.");
+    // Kiểm tra xem có sách nào được chọn không
+    if (selectedItems.length === 0) {
+      message.error("Vui lòng chọn ít nhất một sách để thanh toán.");
       return;
     }
 
-    // Kiểm tra số lượng đặt hàng không vượt quá số lượng tồn kho
-    const overStockItems = carts.filter(item => item.quantity > item.detail.bookQuantity);
-    if (overStockItems.length > 0) {
-      const bookNames = overStockItems.map(item => `"${item.detail.bookTitle}" (Có thể đặt tối đa: ${item.detail.bookQuantity})`);
+    // Kiểm tra xem có sách nào bị khóa hoặc hết hàng trong các sách đã chọn
+    const hasLockedOrOutOfStockBooks = carts
+      .filter(item => selectedItems.includes(item.id))
+      .some(
+        (item) => item.detail.bookStatus === 0 || item.detail.bookQuantity === 0
+      );
+
+    if (hasLockedOrOutOfStockBooks) {
       message.error(
-        <div>
-          <p>Số lượng đặt hàng vượt quá số lượng tồn kho của các sách sau:</p>
-          <ul>
-            {bookNames.map((name, index) => (
-              <li key={index}>{name}</li>
-            ))}
-          </ul>
-          <p>Vui lòng điều chỉnh số lượng trước khi thanh toán.</p>
-        </div>
+        "Vui lòng xóa các sách bị khóa hoặc hết hàng khỏi danh sách đã chọn trước khi thanh toán."
       );
       return;
     }
+
+    // Lưu danh sách sách đã chọn vào localStorage để sử dụng ở bước tiếp theo
+    const selectedCarts = carts.filter(item => selectedItems.includes(item.id));
+    localStorage.setItem("selectedCarts", JSON.stringify(selectedCarts));
 
     setCurrentStep(1);
   };
@@ -219,7 +316,10 @@ const OrderDetail = (props: IProps) => {
                         <li key={`locked-${index}`}>{title}</li>
                       ))}
                     </ul>
-                    <p>Vui lòng xóa các sách này khỏi giỏ hàng trước khi thanh toán.</p>
+                    <p>
+                      Vui lòng xóa các sách này khỏi giỏ hàng trước khi thanh
+                      toán.
+                    </p>
                   </div>
                 }
                 type="warning"
@@ -239,7 +339,10 @@ const OrderDetail = (props: IProps) => {
                         <li key={`outofstock-${index}`}>{title}</li>
                       ))}
                     </ul>
-                    <p>Vui lòng xóa các sách này khỏi giỏ hàng trước khi thanh toán.</p>
+                    <p>
+                      Vui lòng xóa các sách này khỏi giỏ hàng trước khi thanh
+                      toán.
+                    </p>
                   </div>
                 }
                 type="warning"
@@ -252,13 +355,59 @@ const OrderDetail = (props: IProps) => {
         <Row gutter={[24, 24]}>
           <Col md={16} xs={24}>
             <div className="order-list">
+              {/* Header with select all checkbox */}
+              {carts.length > 0 && (
+                <div
+                  className="order-list-header"
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: 16,
+                    padding: "0 8px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <Checkbox
+                      checked={selectAll}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      style={{ marginRight: 8 }}
+                    />
+                    <span>Chọn tất cả</span>
+                  </div>
+                  {selectedItems.length > 0 && (
+                    <Button
+                      type="primary"
+                      danger
+                      onClick={handleRemoveSelectedBooks}
+                      icon={<DeleteOutlined />}
+                    >
+                      Xóa đã chọn ({selectedItems.length})
+                    </Button>
+                  )}
+                </div>
+              )}
+
               {carts.map((item, index) => (
                 <div className="order-book" key={`book-${index}`}>
-                  <div className="book-content">
+                  <div
+                    className="book-content"
+                    style={{ display: "flex", alignItems: "center" }}
+                  >
+                    <Checkbox
+                      checked={selectedItems.includes(item.id)}
+                      onChange={(e) =>
+                        handleSelectItem(item.id, e.target.checked)
+                      }
+                      disabled={
+                        item.detail.bookStatus === 0 ||
+                        item.detail.bookQuantity === 0
+                      }
+                      style={{ marginRight: 12 }}
+                    />
                     <img
                       src={`${import.meta.env.VITE_BACKEND_URL}${item.detail.image
                         }`}
-                    // alt={item.detail.bookTitle}
                     />
                     <div className="book-info">
                       <div className="book-title">{item.detail.bookTitle}</div>
@@ -335,7 +484,7 @@ const OrderDetail = (props: IProps) => {
                   className="checkout-btn"
                   onClick={handleNextStep}
                 >
-                  Thanh toán ({carts.length})
+                  Thanh toán ({selectedItems.length})
                 </Button>
               </div>
             </div>
